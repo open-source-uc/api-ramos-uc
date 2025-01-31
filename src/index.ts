@@ -12,7 +12,7 @@ app.get('/', (c) => c.json({
 }))
 
 app.get('/test', (c) => {
-  return c.env.DB.prepare("SELECT * FROM cursos")
+  return c.env.DB.prepare("SELECT name FROM career")
     .all()
     .then((data) => c.json(data))
     .catch((error) => c.json({ message: error.message }, 500));
