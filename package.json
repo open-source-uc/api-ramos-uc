@@ -2,13 +2,21 @@
   "name": "api-ramos-uc",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify"
+    "deploy": "wrangler deploy --minify",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "hono": "^4.6.20"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "@eslint/js": "^9.19.0",
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
+    "eslint": "^9.19.0",
+    "globals": "^15.14.0",
+    "typescript-eslint": "^8.22.0",
     "wrangler": "^3.101.0"
   }
 }
