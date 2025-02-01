@@ -45,15 +45,14 @@ app.post(
         const { email, password, nickname, admision_year, carrer_name } = c.req.valid('json');
 
         const hashedEmail = await sha256(email);
-        const hashedPassword = await bcrypt.hash(password, 10)
 
         const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?").bind(hashedEmail).first()
-        return c.json({
-            found: found
-        })
-        if (!found) return c.json({
+
+        if (found !== null) return c.json({
             message: "El email ya esta registrado :c"
         })
+
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name).run()
 
