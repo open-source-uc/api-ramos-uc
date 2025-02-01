@@ -1,6 +1,7 @@
 import createHono from "../../lib/honoBase";
 import { zValidator } from '@hono/zod-validator'
 import { z } from "zod"
+import argon2 from "argon2"
 
 const currentYear = new Date().getFullYear();
 
@@ -43,11 +44,12 @@ app.post(
     async (c) => {
         const { email, password, nickname, admision_year, carrer_name } = c.req.valid('json');
 
-        const emailHash = await sha256(email);
-
+        const hashedEmail = await sha256(email);
+        const hashedPassword = await argon2.hash(password)
 
         return c.json({
-            email: emailHash
+            hashedEmail,
+            hashedPassword
         })
     }
 );
