@@ -47,6 +47,14 @@ app.post(
         const hashedEmail = await sha256(email);
         const hashedPassword = await argon2.hash(password)
 
+        const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?").bind(hashedEmail).first()
+
+        if (!found) return c.json({
+            message: "El email ya esta registrado :c"
+        })
+
+        await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name)
+
         return c.json({
             hashedEmail,
             hashedPassword
