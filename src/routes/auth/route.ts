@@ -32,6 +32,8 @@ async function sha256(message: string) {
 
 const app = createHono()
 
+app.get("/", (c) => c.json({ message: "hola" }))
+
 app.post(
     '/',
     zValidator('json', UserAccountCreateSchema, (result, c) => {
