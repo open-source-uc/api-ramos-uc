@@ -63,8 +63,9 @@ app.post(
                 hashedPassword
             })
         } catch (error) {
+
             return c.json({
-                message: error,
+                message: error?.toString(), error: true
             })
         }
     }
