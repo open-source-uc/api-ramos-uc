@@ -2,6 +2,8 @@ import createHono from "../../lib/honoBase";
 import { zValidator } from '@hono/zod-validator'
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { env } from 'hono/adapter'
+import { decode, sign, verify } from "hono/jwt";
 
 const currentYear = new Date().getFullYear();
 
@@ -23,6 +25,13 @@ const UserAccountCreateSchema = z.object({
     carrer_name: z.string(),
 });
 
+const UserAccountLoginSchema = z.object({
+    email: z.string().email().refine((val) => val.endsWith('.uc.cl') || val.endsWith('@uc.cl'), {
+        message: 'El correo electrónico debe pertenecer al dominio uc.cl',
+    }),
+    password: z.string().min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+})
+
 async function sha256(message: string) {
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -31,12 +40,13 @@ async function sha256(message: string) {
     return hashHex;
 }
 
+
 const app = createHono()
 
 app.get("/", (c) => c.json({ message: "hola" }))
 
 app.post(
-    '/',
+    '/register',
     zValidator('json', UserAccountCreateSchema, (result, c) => {
         if (!result.success)
             return c.json({ message: result.error.errors[0].message })
@@ -55,12 +65,24 @@ app.post(
                 })
 
             const hashedPassword = await bcrypt.hash(password, 10)
+            const SECRET_USER_KEY = crypto.randomUUID()
 
-            await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name).run()
+            await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?, ?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name, SECRET_USER_KEY).run()
+
+
+            const { SECRET_GLOBAL_KEY } = env(c)
+            const token = await sign(
+                {
+                    hashedEmail: hashedEmail,
+                    exp: Math.floor(Date.now() / 1000) * 60 * 60 * 5
+                },
+                SECRET_USER_KEY + SECRET_GLOBAL_KEY
+            )
+
 
             return c.json({
-                hashedEmail,
-                hashedPassword
+                nickname: nickname,
+                token
             })
         } catch (error) {
 
@@ -70,5 +92,57 @@ app.post(
         }
     }
 );
+
+app.post(
+    '/login',
+    zValidator('json', UserAccountLoginSchema, (result, c) => {
+        if (!result.success)
+            return c.json({ message: result.error.errors[0].message });
+    }),
+    async (c) => {
+        try {
+            // Extraemos los datos del request
+            const { email, password } = c.req.valid('json');
+
+            // Calculamos el hash del email para buscar el usuario
+            const hashedEmail = await sha256(email);
+
+            // Buscamos al usuario en la base de datos
+            const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?")
+                .bind(hashedEmail)
+                .first();
+
+            if (found === null)
+                return c.json({ message: "Credenciales inválidas" });
+
+            // Verificamos que la contraseña proporcionada coincida con la almacenada
+            console.log(found)
+            const isValidPassword = await bcrypt.compare(password, found?.password);
+            if (!isValidPassword)
+                return c.json({ message: "Credenciales inválidas" });
+
+            const { SECRET_GLOBAL_KEY } = env(c);
+            const token = await sign(
+                {
+                    hashedEmail: hashedEmail,
+                    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 5 // Token con 5 horas de expiración
+                },
+                found.SECRET_USER_KEY + SECRET_GLOBAL_KEY
+            );
+
+            // Respondemos con el token y el nickname del usuario
+            return c.json({
+                nickname: found.nickname,
+                token
+            });
+        } catch (error) {
+            return c.json({
+                message: error?.toString(),
+                error: true
+            });
+        }
+    }
+);
+
 
 export default app;

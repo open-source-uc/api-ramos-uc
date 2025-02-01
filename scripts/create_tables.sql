@@ -37,13 +37,10 @@ CREATE TABLE schedule (
 CREATE TABLE useraccount (
     email_hash TEXT PRIMARY KEY,
     password VARCHAR(1024),
-    nickname VARCHAR(100) NOT NULL,
+    nickname VARCHAR(100) NOT NULL UNIQUE,
     admision_year INTEGER NOT NULL,
     carrer_name VARCHAR(255) NOT NULL,
-    CONSTRAINT check_admission_year CHECK (
-        admision_year BETWEEN (CAST(strftime('%Y','now') AS INTEGER) - 12) 
-                            AND CAST(strftime('%Y','now') AS INTEGER)
-    ),
+    secret_key TEXT NOT NULL,
     FOREIGN KEY (carrer_name) REFERENCES career(name)
 );
 
@@ -57,10 +54,6 @@ CREATE TABLE section (
     is_english BOOLEAN,
     is_removable BOOLEAN,
     is_special BOOLEAN,
-    CONSTRAINT check_year CHECK (
-        year BETWEEN (CAST(strftime('%Y','now') AS INTEGER) - 5) 
-                 AND CAST(strftime('%Y','now') AS INTEGER)
-    ),
     CONSTRAINT check_semester CHECK (semester IN (1, 2, 3)),
     PRIMARY KEY (sigle, number, year, semester),
     FOREIGN KEY (sigle) REFERENCES course(sigle)

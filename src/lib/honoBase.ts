@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 
 type Bindings = {
     DB: D1Database;
+    SECRET_GLOBAL_KEY: string;
 };
 
 export default function createHono() {
