@@ -1,5 +1,6 @@
 import createHono from './lib/honoBase';
 import auth from './routes/auth/route'
+import career from "./routes/career/route"
 import { cors } from 'hono/cors'
 
 const app = createHono()
@@ -11,14 +12,10 @@ app.get('/', (c) => c.json({
   date: "2025-01-31",
 }))
 
+app.route("/career", career)
 app.route('/auth', auth)
 
-// app.get('/test', (c) => {
-//   return c.env.DB.prepare("SELECT name FROM career")
-//     .all()
-//     .then((data) => c.json(data))
-//     .catch((error) => c.json({ message: error.message }, 500));
-// });
+
 
 
 export default app

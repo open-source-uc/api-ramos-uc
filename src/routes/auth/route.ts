@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator'
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { env } from 'hono/adapter'
-import { decode, sign, verify } from "hono/jwt";
+import { sign } from "hono/jwt";
 
 const currentYear = new Date().getFullYear();
 
@@ -62,7 +62,7 @@ app.post(
             if (found !== null)
                 return c.json({
                     message: "El email ya esta registrado :c"
-                })
+                }, 409)
 
             const hashedPassword = await bcrypt.hash(password, 10)
             const SECRET_USER_KEY = crypto.randomUUID()
@@ -74,7 +74,6 @@ app.post(
             const token = await sign(
                 {
                     hashedEmail: hashedEmail,
-                    exp: Math.floor(Date.now() / 1000) * 60 * 60 * 5
                 },
                 SECRET_USER_KEY + SECRET_GLOBAL_KEY
             )
@@ -83,12 +82,12 @@ app.post(
             return c.json({
                 nickname: nickname,
                 token
-            })
+            }, 201)
         } catch (error) {
 
             return c.json({
                 message: error?.toString(), error: true
-            })
+            }, 500)
         }
     }
 );
@@ -101,45 +100,39 @@ app.post(
     }),
     async (c) => {
         try {
-            // Extraemos los datos del request
             const { email, password } = c.req.valid('json');
 
-            // Calculamos el hash del email para buscar el usuario
             const hashedEmail = await sha256(email);
 
-            // Buscamos al usuario en la base de datos
             const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?")
                 .bind(hashedEmail)
                 .first();
 
             if (found === null)
-                return c.json({ message: "Credenciales inválidas" });
+                return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
-            // Verificamos que la contraseña proporcionada coincida con la almacenada
             console.log(found)
             const isValidPassword = await bcrypt.compare(password, found?.password);
             if (!isValidPassword)
-                return c.json({ message: "Credenciales inválidas" });
+                return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
             const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     hashedEmail: hashedEmail,
-                    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 5 // Token con 5 horas de expiración
                 },
                 found.SECRET_USER_KEY + SECRET_GLOBAL_KEY
             );
 
-            // Respondemos con el token y el nickname del usuario
             return c.json({
                 nickname: found.nickname,
                 token
-            });
+            }, 200);
         } catch (error) {
             return c.json({
                 message: error?.toString(),
                 error: true
-            });
+            }, 500);
         }
     }
 );
