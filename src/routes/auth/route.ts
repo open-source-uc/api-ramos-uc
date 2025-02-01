@@ -38,28 +38,47 @@ app.get("/", (c) => c.json({ message: "hola" }))
 app.post(
     '/',
     zValidator('json', UserAccountCreateSchema, (result, c) => {
-        if (!result.success)
-            return c.json({ message: result.error.errors[0].message })
+        if (!result.success) {
+            return c.json({ message: result.error.errors[0].message }, 400);
+        }
     }),
-    async (c) => {
+    (c) => {
         const { email, password, nickname, admision_year, carrer_name } = c.req.valid('json');
 
-        const hashedEmail = await sha256(email);
+        // Generar hash del email
+        return sha256(email)
+            .then((hashedEmail) => {
+                c.env.DB.prepare('SELECT * FROM useraccount WHERE email_hash = ?')
+                    .bind(hashedEmail)
+                    .first()
+                    .then((found) => {
+                        if (found !== null) {
+                            return c.json({ message: 'El email ya está registrado :c' }, 409);
+                        }
 
-        const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?").bind(hashedEmail).first()
-
-        if (found !== null) return c.json({
-            message: "El email ya esta registrado :c"
-        })
-
-        const hashedPassword = await bcrypt.hash(password, 10)
-
-        await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name).run()
-
-        return c.json({
-            hashedEmail,
-            hashedPassword
-        })
+                        bcrypt.hash(password, 10)
+                            .then((hashedPassword) => {
+                                c.env.DB.prepare('INSERT INTO useraccount (email_hash, password_hash, nickname, admision_year, carrer_name) VALUES (?, ?, ?, ?, ?)')
+                                    .bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name)
+                                    .run()
+                                    .then(() => {
+                                        return c.json({ message: 'Usuario registrado exitosamente' }, 201);
+                                    })
+                                    .catch((error) => {
+                                        return c.json({ message: 'Ocurrió un error al registrar el usuario.' }, 500);
+                                    });
+                            })
+                            .catch((error) => {
+                                return c.json({ message: 'Ocurrió un error al procesar la contraseña.' }, 500);
+                            });
+                    })
+                    .catch((error) => {
+                        return c.json({ message: 'Ocurrió un error al verificar el email.' }, 500);
+                    });
+            })
+            .catch((error) => {
+                return c.json({ message: 'Ocurrió un error al procesar el email.' }, 500);
+            });
     }
 );
 
