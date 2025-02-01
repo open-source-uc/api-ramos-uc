@@ -111,7 +111,6 @@ app.post(
             if (found === null)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
-            console.log(found)
             const isValidPassword = await bcrypt.compare(password, found?.password);
             if (!isValidPassword)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);

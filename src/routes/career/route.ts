@@ -2,7 +2,7 @@ import createHono from "../../lib/honoBase";
 
 const app = createHono()
 
-app.get('/career', (c) => {
+app.get('/', (c) => {
     return c.env.DB.prepare("SELECT name FROM career")
         .all()
         .then((data) => c.json(data, 200))
