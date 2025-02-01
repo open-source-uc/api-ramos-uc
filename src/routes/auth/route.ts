@@ -1,7 +1,7 @@
 import createHono from "../../lib/honoBase";
 import { zValidator } from '@hono/zod-validator'
 import { z } from "zod"
-import argon2 from "argon2"
+import bcrypt from "bcryptjs"
 
 const currentYear = new Date().getFullYear();
 
@@ -45,10 +45,12 @@ app.post(
         const { email, password, nickname, admision_year, carrer_name } = c.req.valid('json');
 
         const hashedEmail = await sha256(email);
-        const hashedPassword = await argon2.hash(password)
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?").bind(hashedEmail).first()
-
+        return c.json({
+            found: found
+        })
         if (!found) return c.json({
             message: "El email ya esta registrado :c"
         })

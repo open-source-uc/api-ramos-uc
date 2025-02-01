@@ -9,5 +9,8 @@
       "database_name": "ramos-uc",
       "database_id": "a45f7abe-7b46-4720-a470-614b2b636983"
     }
+  ],
+  "compatibility_flags": [
+    "nodejs_compat"
   ]
 }
