@@ -1,0 +1,53 @@
+import createHono from "../../lib/honoBase";
+import { zValidator } from '@hono/zod-validator'
+import { z } from "zod"
+
+const currentYear = new Date().getFullYear();
+
+const UserAccountCreateSchema = z.object({
+    email: z.string().email().refine((val) => val.endsWith('.uc.cl') || val.endsWith('@uc.cl'), {
+        message: 'El correo electrónico debe pertenecer al dominio uc.cl',
+    }),
+    password: z.string().min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+        .refine((val) => /[A-Z]/.test(val), {
+            message: 'La contraseña debe contener al menos una letra mayúscula.',
+        })
+        .refine((val) => /[0-9]/.test(val), {
+            message: 'La contraseña debe contener al menos un número.',
+        }),
+    nickname: z.string().max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
+    admision_year: z.number().int().refine((val) => val >= currentYear - 12 && val <= currentYear, {
+        message: `El año de admisión debe estar entre ${currentYear - 12} y ${currentYear}.`,
+    }),
+    carrer_name: z.string(),
+});
+
+async function sha256(message: string) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+const app = createHono()
+
+app.post(
+    '/',
+    zValidator('json', UserAccountCreateSchema, (result, c) => {
+        if (!result.success)
+            return c.json({ message: result.error.errors[0].message })
+    }),
+    async (c) => {
+        const { email, password, nickname, admision_year, carrer_name } = c.req.valid('json');
+
+        const emailHash = await sha256(email);
+
+
+        return c.json({
+            email: emailHash
+        })
+    }
+);
+
+export default app;
