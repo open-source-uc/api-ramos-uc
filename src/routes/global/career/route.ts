@@ -1,4 +1,4 @@
-import createHono from "../../lib/honoBase";
+import createHono from "../../../lib/honoBase";
 
 const app = createHono()
 

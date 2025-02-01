@@ -1,4 +1,4 @@
-import createHono from "../../lib/honoBase";
+import createHono from "../../../lib/honoBase";
 import { zValidator } from '@hono/zod-validator'
 import { z } from "zod"
 import bcrypt from "bcryptjs"
@@ -40,10 +40,7 @@ async function sha256(message: string) {
     return hashHex;
 }
 
-
 const app = createHono()
-
-app.get("/", (c) => c.json({ message: "hola" }))
 
 app.post(
     '/register',
@@ -67,7 +64,7 @@ app.post(
             const hashedPassword = await bcrypt.hash(password, 10)
             const SECRET_USER_KEY = crypto.randomUUID()
 
-            await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?, ?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name, SECRET_USER_KEY).run()
+            await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name, SECRET_USER_KEY).run()
 
 
             const { SECRET_GLOBAL_KEY } = env(c)

@@ -1,4 +1,4 @@
-import createHono from "../../lib/honoBase";
+import createHono from "../../../lib/honoBase";
 import { zValidator } from '@hono/zod-validator'
 import { z } from "zod"
 
@@ -29,7 +29,7 @@ app.get(
             if (!result.success) {
                 return c.json({
                     message: result.error.errors[0]?.message
-                })
+                }, 400)
             }
         }
     ),
@@ -77,7 +77,7 @@ app.get(
             if (!result.success) {
                 return c.json({
                     message: result.error.errors[0]?.message
-                })
+                }, 400)
             }
         }
     ),

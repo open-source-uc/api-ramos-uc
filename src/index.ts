@@ -1,7 +1,7 @@
 import createHono from './lib/honoBase';
-import auth from './routes/auth/route'
-import career from "./routes/career/route"
-import course from "./routes/courses/route"
+import auth from './routes/global/auth/route'
+import career from "./routes/global/career/route"
+import course from "./routes/global/courses/route"
 import { cors } from 'hono/cors'
 
 const app = createHono()
