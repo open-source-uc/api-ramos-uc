@@ -53,7 +53,7 @@ app.post(
             message: "El email ya esta registrado :c"
         })
 
-        await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name)
+        await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?)").bind(hashedEmail, hashedPassword, nickname, admision_year, carrer_name).run()
 
         return c.json({
             hashedEmail,
