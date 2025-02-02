@@ -12,7 +12,7 @@ app.post(
     '/register',
     zValidator('json', UserAccountCreateSchema, (result, c) => {
         if (!result.success)
-            return c.json({ message: result.error.errors[0].message })
+            return c.json({ message: result.error.errors[0].message }, 400)
     }),
     async (c) => {
         try {
@@ -42,13 +42,11 @@ app.post(
                 "HS256"
             )
 
-
             return c.json({
                 nickname: nickname,
                 token
             }, 201)
         } catch (error) {
-
             return c.json({
                 message: error?.toString(), error: true
             }, 500)
@@ -81,7 +79,6 @@ app.post(
 
 
             const { SECRET_GLOBAL_KEY } = env(c);
-            console.log(found.secret_key)
             const token = await sign(
                 {
                     email_hash: email_hash,

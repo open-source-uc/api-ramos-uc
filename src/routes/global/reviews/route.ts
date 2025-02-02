@@ -33,7 +33,7 @@ app.get("/", zValidator("query", z.object({
         OFFSET 50 * (?);
     `).bind(page ?? 0).run()
 
-    return c.json({ result }, 200)
+    return c.json({ reviews: result.results }, 200)
 })
 
 app.get("/course/:sigle",
@@ -75,7 +75,7 @@ app.get("/course/:sigle",
         if (result.meta.rows_read === 0)
             return c.json({ message: "Not found any review" }, 404)
 
-        return c.json({ result }, 200)
+        return c.json({ reviews: result.results }, 200)
 
     })
 
@@ -118,7 +118,7 @@ app.get("/user/:nickname",
         if (result.meta.rows_read === 0)
             return c.json({ message: "Not found any review" }, 404)
 
-        return c.json({ result }, 200)
+        return c.json({ reviews: result.results }, 200)
     })
 
 export default app
