@@ -9,6 +9,50 @@ import { UserAccountUpdateSchema, UserPasswordUpdateSchema } from "../types";
 
 const app = createHono();
 
+
+app.get(
+    "/:nickname",
+    zValidator("param", z.object({
+        nickname: z.string()
+    }), (result, c) => {
+        if (!result.success)
+            return c.json({
+                message: result.error.errors[0].message
+            }, 400)
+    }),
+    zValidator("header", HeaderSchema, (result, c) => {
+        if (!result.success)
+            return c.json({
+                message: result.error.errors[0].message
+            }, 400)
+    }),
+    async (c) => {
+        const { osuctoken } = c.req.valid("header");
+        const { nickname } = c.req.valid("param")
+        const user = await c.env.DB.prepare(`SELECT secret_key FROM useraccount WHERE nickname = ?`).bind(nickname).first()
+
+        const { SECRET_GLOBAL_KEY } = env(c);
+
+        if (!user)
+            return c.json({ message: "Usuario no encontrado" }, 404)
+
+        const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256")
+
+        const result = await c.env.DB.prepare(`
+            SELECT 
+            nickname,
+            admission_year,
+            career_name
+            FROM useraccount
+            WHERE email_hash = ?`
+        )
+            .bind(payload?.email_hash)
+            .first();
+        return c.json({
+            user: result
+        }, 200)
+    })
+
 app.put(
     "/",
     zValidator("json", UserAccountUpdateSchema),
@@ -22,7 +66,7 @@ app.put(
             const user = await c.env.DB.prepare(`SELECT secret_key FROM useraccount WHERE nickname = ?`).bind(current_nickname).first()
 
             if (!user)
-                return c.json("Usuario no encontrado", 404)
+                return c.json({ message: "Usuario no encontrado" }, 404)
 
             const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256")
 
