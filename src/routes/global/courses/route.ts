@@ -85,7 +85,7 @@ app.get(
 
         const result = await query.bind(sigle ?? null, sigle ?? null, school ?? null, school ?? null, page ?? 0).all()
 
-        return c.json({ result }, 200)
+        return c.json({ courses: result.results }, 200)
     }
 )
 
@@ -120,7 +120,6 @@ app.get(
     ),
     async (c) => {
         const { page, sigle, area } = c.req.query()
-        console.log(page)
         const query = c.env.DB.prepare(`
         SELECT * FROM course_reviews_avg
         WHERE
@@ -134,7 +133,7 @@ app.get(
 
         const result = await query.bind(sigle ?? null, sigle ?? null, area ?? null, area ?? null, page ?? 0).all()
 
-        return c.json({ result }, 200)
+        return c.json({ courses: result.results }, 200)
     }
 )
 

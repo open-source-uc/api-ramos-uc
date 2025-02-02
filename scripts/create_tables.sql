@@ -61,6 +61,7 @@ SELECT
     c.sigle,
     c.name,
     c.category,
+    c.school,
     c.area,
     c.credits,
     CASE 
@@ -70,5 +71,5 @@ SELECT
     COALESCE(AVG(r.estimated_credits), 0) AS promedio_creditos_est
 FROM course c
 LEFT JOIN review r ON c.sigle = r.course_sigle
-GROUP BY c.sigle, c.name, c.category, c.area, c.credits
+GROUP BY c.sigle, c.name, c.category, c.area, c.credits, c.school
 ORDER BY promedio DESC, c.sigle ASC;

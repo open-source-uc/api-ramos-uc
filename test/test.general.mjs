@@ -38,4 +38,15 @@ test("test global general routes", { timeout: 60_000 }, async (t) => {
             assert.ok(element.area !== undefined)
         });
     })
+    await t.test("school", async () => {
+        let res = await fetch(`${TEST_BASE_URL}/general/school`)
+        assert.equal(res.status, 200)
+
+        let body = await res.json()
+        assert.ok(body.schools)
+        assert.equal(Array.isArray(body.schools), true)
+        body.schools.forEach(element => {
+            assert.ok(element.school !== undefined)
+        });
+    })
 })

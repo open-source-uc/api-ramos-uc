@@ -30,7 +30,6 @@ app.post(
 
             const { SECRET_GLOBAL_KEY } = env(c);
             const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256")
-            console.log(payload)
             await c.env.DB.prepare(`
                 INSERT INTO review(
                 course_sigle, 
