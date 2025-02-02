@@ -2,6 +2,7 @@ import createHono from './lib/honoBase';
 import auth from './routes/global/auth/route'
 import career from "./routes/global/career/route"
 import course from "./routes/global/courses/route"
+import reviews from "./routes/users/reviews/route"
 import { cors } from 'hono/cors'
 
 const app = createHono()
@@ -16,5 +17,6 @@ app.get('/', (c) => c.json({
 app.route("/career", career)
 app.route('/auth', auth)
 app.route("/course", course)
+app.route("/reviews", reviews)
 
 export default app

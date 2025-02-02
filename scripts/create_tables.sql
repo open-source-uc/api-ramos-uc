@@ -42,13 +42,14 @@ CREATE TABLE course (
 -- Tabla: review
 CREATE TABLE review (
     course_sigle VARCHAR(50),
-    section_number INTEGER,
     email_hash TEXT,
+    year INTEGER,
+    section_number INTEGER,
     liked BOOLEAN,
     comment TEXT,
     estimated_credits INTEGER,
-    status VARCHAR(20),
-    PRIMARY KEY (course_sigle, section_number, email_hash),
+    status VARCHAR(20) NOT NULL,
+    PRIMARY KEY (course_sigle, email_hash),
     CONSTRAINT check_status CHECK (status IN ('visible', 'hidden')),
     FOREIGN KEY (course_sigle) REFERENCES course(sigle),
     FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash)
