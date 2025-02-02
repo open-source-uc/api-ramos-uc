@@ -1,9 +1,10 @@
 import createHono from './lib/honoBase';
 import auth from './routes/global/auth/route'
-import career from "./routes/global/career/route"
+import general from "./routes/global/general/route"
 import course from "./routes/global/courses/route"
-import reviews from "./routes/users/reviews/route"
+import userReviews from "./routes/users/reviews/route"
 import userPanel from "./routes/users/panel/route"
+import reviews from "./routes/global/reviews/route"
 import { cors } from 'hono/cors'
 
 const app = createHono()
@@ -15,10 +16,10 @@ app.get('/', (c) => c.json({
   date: "2025-01-31",
 }))
 
-app.route("/career", career)
+app.route("/general", general)
 app.route('/auth', auth)
 app.route("/course", course)
-app.route("/reviews", reviews)
+app.route("/user/reviews", userReviews)
 app.route("/user", userPanel)
-
+app.route("/reviews", reviews)
 export default app

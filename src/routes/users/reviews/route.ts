@@ -6,12 +6,6 @@ import { env } from "hono/adapter";
 import { HeaderSchema } from "../../../lib/header";
 const app = createHono()
 
-app.get("/", (c) => {
-    return c.json({
-        message: "hola"
-    }, 200)
-})
-
 app.post(
     "/",
     zValidator("json", z.object({

@@ -1,6 +1,11 @@
 npx wrangler d1 execute ramos-uc --local --file=scripts/drop_tables.sql
+echo Tablas dropeadas
 npx wrangler d1 execute ramos-uc --local --file=scripts/create_tables.sql
+echo Tablas creadas
 npx wrangler d1 execute ramos-uc --local --file=scripts/insert_defaults.sql
+echo Datos default insertados
+npx wrangler d1 execute ramos-uc --local --file=scripts/triggers.sql
+echo Insertando cursos
 npx wrangler d1 execute ramos-uc --local --file=scripts/2025-1/2025-1.sql
 npx wrangler d1 execute ramos-uc --local --file=scripts/2025-1/2025-2.sql
 npx wrangler d1 execute ramos-uc --local --file=scripts/2025-1/2025-3.sql
