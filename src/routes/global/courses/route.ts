@@ -37,12 +37,11 @@ app.get(
         const { page, sigle, area } = c.req.query()
         console.log(page)
         const query = c.env.DB.prepare(`
-        SELECT * FROM course
+        SELECT * FROM course_reviews_avg
         WHERE
         (? IS NULL OR sigle = ?) 
         AND
         (? IS NULL OR area = ?)
-        ORDER BY sigle
         LIMIT 50 OFFSET 50 * (?)
         `)
 
@@ -85,14 +84,13 @@ app.get(
         const { page, sigle, area } = c.req.query()
         console.log(page)
         const query = c.env.DB.prepare(`
-        SELECT * FROM course
+        SELECT * FROM course_reviews_avg
         WHERE
         area <> ''
         AND
         (? IS NULL OR sigle = ?) 
         AND
         (? IS NULL OR area = ?)
-        ORDER BY sigle
         LIMIT 50 OFFSET 50 * (?)
         `)
 

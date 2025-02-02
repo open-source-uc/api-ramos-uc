@@ -6,6 +6,12 @@ import { env } from "hono/adapter";
 import { HeaderSchema } from "../../../lib/header";
 const app = createHono()
 
+app.get("/", (c) => {
+    return c.json({
+        message: "hola"
+    }, 200)
+})
+
 app.post(
     "/",
     zValidator("json", z.object({
@@ -30,7 +36,7 @@ app.post(
 
             const { SECRET_GLOBAL_KEY } = env(c);
             const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256")
-
+            console.log(payload)
             await c.env.DB.prepare(`
                 INSERT INTO review(
                 course_sigle, 
@@ -54,7 +60,7 @@ app.post(
                 `)
                 .bind(
                     course_sigle,
-                    payload?.hashed_email,
+                    payload?.email_hash,
                     year,
                     section_number,
                     liked,
@@ -128,7 +134,7 @@ app.put(
                     liked,
                     comment,
                     estimated_credits,
-                    payload?.hashed_email,
+                    payload?.email_hash,
                     course_sigle
                 )
                 .run();
@@ -185,7 +191,7 @@ app.delete(
           WHERE email_hash = ? AND course_sigle = ?
           `
             )
-                .bind(payload?.hashed_email, course_sigle)
+                .bind(payload?.email_hash, course_sigle)
                 .run();
 
             if (result.meta.changes === 0) {

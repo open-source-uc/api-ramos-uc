@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { env } from "hono/adapter";
-import { verify } from "hono/jwt";
+import { sign, verify } from "hono/jwt";
 import { HeaderSchema } from "../../../lib/header";
 import { UserAccountUpdateSchema, UserPasswordUpdateSchema } from "../types";
 
@@ -16,10 +16,10 @@ app.put(
     async (c) => {
         try {
             const { osuctoken } = c.req.valid("header");
-            const { nickname, admision_year, carrer_name } = c.req.valid("json");
+            const { nickname, admission_year, career_name, current_nickname } = c.req.valid("json");
             const { SECRET_GLOBAL_KEY } = env(c);
 
-            const user = await c.env.DB.prepare(`SELECT secret_key FROM useraccount WHERE nickname = ?`).bind(nickname).first()
+            const user = await c.env.DB.prepare(`SELECT secret_key FROM useraccount WHERE nickname = ?`).bind(current_nickname).first()
 
             if (!user)
                 return c.json("Usuario no encontrado", 404)
@@ -30,11 +30,11 @@ app.put(
                 `UPDATE useraccount
                 SET
                     nickname = ?,
-                    admision_year = ?,
-                    carrer_name = ?
+                    admission_year = ?,
+                    career_name = ?
                 WHERE email_hash = ?`
             )
-                .bind(nickname, admision_year, carrer_name, payload?.email_hash)
+                .bind(nickname, admission_year, career_name, payload?.email_hash)
                 .run();
 
 
@@ -84,7 +84,16 @@ app.patch(
                 .bind(newHashedPassword, SECRET_USER_KEY, payload?.email_hash)
                 .run();
 
-            return c.json({ message: "Contraseña actualizada correctamente" }, 200);
+            const token = await sign(
+                {
+                    email_hash: payload?.email_hash,
+                },
+                SECRET_USER_KEY + SECRET_GLOBAL_KEY,
+                "HS256"
+            )
+
+
+            return c.json({ message: "Contraseña actualizada correctamente", token }, 200);
         } catch (error) {
             return c.json({ message: error?.toString(), error: true }, 500);
         }

@@ -49,9 +49,26 @@ CREATE TABLE review (
     comment TEXT,
     estimated_credits INTEGER,
     status VARCHAR(20) NOT NULL,
+    date TEXT DEFAULT (datetime('now')),
     PRIMARY KEY (course_sigle, email_hash),
     CONSTRAINT check_status CHECK (status IN ('visible', 'hidden')),
     FOREIGN KEY (course_sigle) REFERENCES course(sigle),
     FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash)
 );
 
+CREATE VIEW course_reviews_avg AS
+SELECT 
+    c.sigle,
+    c.name,
+    c.category,
+    c.area,
+    c.credits,
+    CASE 
+        WHEN COUNT(r.course_sigle) = 0 THEN 0 
+        ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
+    END AS promedio,
+    COALESCE(AVG(r.estimated_credits), 0) AS promedio_creditos_est
+FROM course c
+LEFT JOIN review r ON c.sigle = r.course_sigle
+GROUP BY c.sigle, c.name, c.category, c.area, c.credits
+ORDER BY promedio DESC, c.sigle ASC;

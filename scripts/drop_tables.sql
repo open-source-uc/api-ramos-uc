@@ -5,3 +5,5 @@ DROP TABLE IF EXISTS userpermission;
 DROP TABLE IF EXISTS useraccount;
 DROP TABLE IF EXISTS permission;
 DROP TABLE IF EXISTS career;
+
+DROP VIEW IF EXISTS course_reviews_avg;
