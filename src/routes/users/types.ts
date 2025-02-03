@@ -1,15 +1,11 @@
 import { z } from "zod"
 
-
-export const UserAccountUpdateSchema = (currentYear: number) => (z.object({
+export const UserAccountUpdateSchema = z.object({
     current_nickname: z.string(),
     nickname: z.string().min(4).max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
-    admission_year: z.number().int().refine(
-        (val) => val >= currentYear - 12 && val <= currentYear,
-        { message: `El año de admisión debe estar entre ${currentYear - 12} y ${currentYear}.` }
-    ),
+    admission_year: z.number().int(),
     career_name: z.string()
-}));
+});
 
 export const UserPasswordUpdateSchema = z.object({
     nickname: z.string().max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
@@ -23,7 +19,7 @@ export const UserPasswordUpdateSchema = z.object({
         })
 });
 
-export const UserAccountCreateSchema = (currentYear: number) => z.object({
+export const UserAccountCreateSchema = z.object({
     email: z.string().email().refine((val) => val.endsWith('.uc.cl') || val.endsWith('@uc.cl'), {
         message: 'El correo electrónico debe pertenecer al dominio uc.cl',
     }),
@@ -35,9 +31,7 @@ export const UserAccountCreateSchema = (currentYear: number) => z.object({
             message: 'La contraseña debe contener al menos un número.',
         }),
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
-    admision_year: z.number().int().refine((val) => val >= currentYear - 12 && val <= currentYear, {
-        message: `El año de admisión debe estar entre ${currentYear - 12} y ${currentYear}.`,
-    }),
+    admision_year: z.number().int(),
     carrer_name: z.string(),
 });
 

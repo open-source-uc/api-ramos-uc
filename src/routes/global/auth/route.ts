@@ -10,9 +10,10 @@ const app = createHono()
 
 app.post(
     '/register',
-    zValidator('json', UserAccountCreateSchema(new Date().getFullYear()), (result, c) => {
+    zValidator('json', UserAccountCreateSchema, (result, c) => {
         if (!result.success)
             return c.json({ message: result.error.errors[0].message }, 400)
+        return c.json({ date: new Date().getFullYear() })
     }),
     async (c) => {
         try {

@@ -42,7 +42,7 @@ app.get(
 
 app.put(
     "/",
-    zValidator("json", UserAccountUpdateSchema(new Date().getFullYear())),
+    zValidator("json", UserAccountUpdateSchema),
     zValidator("header", HeaderSchema),
     verifyTokenMiddleware,
     async (c) => {
