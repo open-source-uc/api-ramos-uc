@@ -1,18 +1,18 @@
 import { z } from "zod"
 
 
-export const UserAccountUpdateSchema = z.object({
+export const UserAccountUpdateSchema = (currentYear: number) => (z.object({
+    current_nickname: z.string(),
     nickname: z.string().min(4).max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
-    admision_year: z.number().int().refine((val) => {
-        const currentYear = new Date().getFullYear();
-        return val >= currentYear - 12 && val <= currentYear
-    }, {
-        message: `El año de admisión debe estar entre ${new Date().getFullYear() - 12} y ${new Date().getFullYear()}.`,
-    }),
+    admission_year: z.number().int().refine(
+        (val) => val >= currentYear - 12 && val <= currentYear,
+        { message: `El año de admisión debe estar entre ${currentYear - 12} y ${currentYear}.` }
+    ),
     career_name: z.string()
-});
+}));
 
 export const UserPasswordUpdateSchema = z.object({
+    nickname: z.string().max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
     currentPassword: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
     newPassword: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
         .refine((val) => /[A-Z]/.test(val), {
@@ -23,7 +23,7 @@ export const UserPasswordUpdateSchema = z.object({
         })
 });
 
-export const UserAccountCreateSchema = z.object({
+export const UserAccountCreateSchema = (currentYear: number) => z.object({
     email: z.string().email().refine((val) => val.endsWith('.uc.cl') || val.endsWith('@uc.cl'), {
         message: 'El correo electrónico debe pertenecer al dominio uc.cl',
     }),
@@ -35,11 +35,8 @@ export const UserAccountCreateSchema = z.object({
             message: 'La contraseña debe contener al menos un número.',
         }),
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
-    admision_year: z.number().int().refine((val) => {
-        const currentYear = new Date().getFullYear();
-        return val >= currentYear - 12 && val <= currentYear
-    }, {
-        message: `El año de admisión debe estar entre ${new Date().getFullYear() - 12} y ${new Date().getFullYear()}.`,
+    admision_year: z.number().int().refine((val) => val >= currentYear - 12 && val <= currentYear, {
+        message: `El año de admisión debe estar entre ${currentYear - 12} y ${currentYear}.`,
     }),
     carrer_name: z.string(),
 });
