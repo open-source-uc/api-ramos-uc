@@ -72,7 +72,8 @@ app.post(
                 error: true
             }, 500)
         }
-    })
+    }
+);
 
 app.put(
     "/",

@@ -28,17 +28,17 @@ app.post(
                 }, 409)
 
             const hashedPassword = await bcrypt.hash(password, 10)
-            const SECRET_USER_KEY = crypto.randomUUID()
 
-            await c.env.DB.prepare("INSERT INTO useraccount VALUES (?,?,?,?,?,?)").bind(email_hash, hashedPassword, nickname, admision_year, carrer_name, SECRET_USER_KEY).run()
+            const result = await c.env.DB.prepare("INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)").bind(email_hash, hashedPassword, nickname, admision_year, carrer_name).first()
 
 
             const { SECRET_GLOBAL_KEY } = env(c)
             const token = await sign(
                 {
                     email_hash: email_hash,
+                    token_version: result?.token_version
                 },
-                SECRET_USER_KEY + SECRET_GLOBAL_KEY,
+                SECRET_GLOBAL_KEY,
                 "HS256"
             )
 
@@ -73,19 +73,19 @@ app.post(
             if (found === null)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
-            const isValidPassword = await bcrypt.compare(password, found?.password);
+            const isValidPassword = await bcrypt.compare(password, found?.password as string);
             if (!isValidPassword)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
-
-            const { SECRET_GLOBAL_KEY } = env(c);
+            const { SECRET_GLOBAL_KEY } = env(c)
             const token = await sign(
                 {
                     email_hash: email_hash,
+                    token_version: found?.token_version
                 },
-                found.secret_key + SECRET_GLOBAL_KEY,
+                SECRET_GLOBAL_KEY,
                 "HS256"
-            );
+            )
 
             return c.json({
                 nickname: found.nickname,

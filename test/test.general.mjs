@@ -1,6 +1,6 @@
-import { testClient } from 'hono/testing'
 import test from "node:test"
 import assert from 'node:assert'
+import process from "node:process"
 
 const TEST_BASE_URL = process.env.TEST_BASE_URL
 

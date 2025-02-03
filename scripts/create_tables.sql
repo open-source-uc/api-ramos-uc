@@ -15,7 +15,7 @@ CREATE TABLE useraccount (
     nickname VARCHAR(100) NOT NULL UNIQUE,
     admission_year INTEGER NOT NULL,  
     career_name VARCHAR(255) NOT NULL,
-    secret_key TEXT NOT NULL,
+    token_version TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (career_name) REFERENCES career(name)
 );
 

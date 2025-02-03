@@ -3,7 +3,6 @@ import { z } from "zod"
 const currentYear = new Date().getFullYear();
 
 export const UserAccountUpdateSchema = z.object({
-    current_nickname: z.string(),
     nickname: z.string().min(4).max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
     admission_year: z.number().int().refine(
         (val) => val >= currentYear - 12 && val <= currentYear,
@@ -13,7 +12,6 @@ export const UserAccountUpdateSchema = z.object({
 });
 
 export const UserPasswordUpdateSchema = z.object({
-    nickname: z.string().max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
     currentPassword: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
     newPassword: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
         .refine((val) => /[A-Z]/.test(val), {
