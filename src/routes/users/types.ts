@@ -8,7 +8,6 @@ export const UserAccountUpdateSchema = z.object({
 });
 
 export const UserPasswordUpdateSchema = z.object({
-    nickname: z.string().max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
     currentPassword: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
     newPassword: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
         .refine((val) => /[A-Z]/.test(val), {

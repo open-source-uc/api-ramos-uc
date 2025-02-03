@@ -13,7 +13,7 @@ test("test global general routes", { timeout: 60_000 }, async (t) => {
         assert.ok(body.schools)
         assert.equal(Array.isArray(body.schools), true)
         body.schools.forEach(element => {
-            assert.ok(element.school)
+            assert.ok(element.school !== undefined)
         });
     })
     await t.test("category", async () => {

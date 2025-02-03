@@ -14,7 +14,7 @@ test("test create user", { timeout: 60_000 }, async (t) => {
                 email: "test11@uc.cl",
                 password: "123456789Aa",
                 nickname: "test11",
-                admision_year: 2023,
+                admission_year: 2023,
                 carrer_name: "Licenciatura en Ingeniería en Ciencia De Datos"
             })
         })
