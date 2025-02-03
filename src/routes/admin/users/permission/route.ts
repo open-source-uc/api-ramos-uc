@@ -7,7 +7,6 @@ import { HeaderSchema } from "../../../../lib/header";
 
 const app = createHono()
 
-
 app.post(
     "/permission",
     zValidator("json", z.object({

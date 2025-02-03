@@ -7,8 +7,53 @@ import { UserAccountUpdateAdminSchema, UserPasswordUpdateAdminSchema } from "../
 import bcrypt from "bcryptjs"
 import { env } from "hono/adapter";
 import { sign } from "hono/jwt";
+import { z } from "zod";
 
 const app = createHono()
+
+app.get(
+    "/",
+    zValidator("json", z.object({
+        email_hash: z.string()
+    })),
+    zValidator("header", HeaderSchema),
+    verifyTokenMiddleware,
+    verifyTokenOnePermision(PERMISSIONS.SUDO),
+    async (c) => {
+        const { email_hash } = c.req.valid("json");
+
+        try {
+            const user = await c.env.DB.prepare(`
+                SELECT 
+                email_hash,
+                nickname,
+                admission_year,
+                career_name
+                FROM useraccount
+                WHERE email_hash = ?`
+            )
+                .bind(email_hash)
+                .first();
+            const permissions = await c.env.DB.prepare(`
+                    SELECT 
+                    email_hash,
+                    permission_name
+                    FROM userpermission
+                    WHERE email_hash = ?`
+            )
+                .bind(email_hash)
+                .all();
+
+            return c.json({
+                user: user,
+                permissions: permissions
+            }, 200)
+
+        } catch (error) {
+            return c.json({ message: "Error al actualizar la contraseña", error: true }, 500);
+        }
+    }
+);
 
 app.put(
     "/",
@@ -109,6 +154,5 @@ app.patch(
         }
     }
 );
-
 
 export default app

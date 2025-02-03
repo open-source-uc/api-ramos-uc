@@ -25,22 +25,23 @@ test("Test USER reviews", async (t) => {
         token = body.token
     })
 
-    await t.test("create course", async () => {
-        let res = await fetch(`${TEST_BASE_URL}/admin/course`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "osuctoken": token
-            },
-            body: JSON.stringify({
-                sigle: "419",
-                name: "curso test",
-                credits: 10,
-                school: "",
-                area: "",
-                category: ""
-            })
-        })
-        assert.equal(res.status, 201)
+    await t.test("reviews get from all", async () => {
+        let res = await fetch(`${TEST_BASE_URL}/admin/reviews`)
+        assert.equal(res.status, 200)
+    })
+
+    await t.test("reviews get from all", async () => {
+        let res = await fetch(`${TEST_BASE_URL}/admin/reviews`)
+        assert.equal(res.status, 200)
+    })
+
+    await t.test("reviews get from sigle", async () => {
+        let res = await fetch(`${TEST_BASE_URL}/admin/reviews/course/IMT2220`)
+        assert.equal(res.status, 200)
+    })
+
+    await t.test("reviews get from sigle", async () => {
+        let res = await fetch(`${TEST_BASE_URL}/admin/reviews/user/cambiado11`)
+        assert.equal(res.status, 200)
     })
 })
