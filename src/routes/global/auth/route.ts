@@ -17,7 +17,7 @@ app.post(
 
         if (!(currentYear - 12 <= result.data.admission_year))
             return c.json({
-                message: "El año de admision debe ser mayor a " + (currentYear - 12)
+                message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
             })
     }),
     async (c) => {
