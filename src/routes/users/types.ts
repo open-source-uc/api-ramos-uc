@@ -35,7 +35,7 @@ export const UserAccountCreateSchema = z.object({
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
     admision_year: z.number().int().refine((val) => {
         const currentYear = new Date().getFullYear();
-        val >= currentYear - 12 && val <= currentYear
+        return val >= currentYear - 12 && val <= currentYear
     }, {
         message: `El año de admisión debe estar entre ${new Date().getFullYear() - 12} y ${new Date().getFullYear()}.`,
     }),
