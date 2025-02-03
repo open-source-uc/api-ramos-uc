@@ -1,16 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
 import createHono from "../../../lib/honoBase";
 import { z } from "zod";
-import { verify } from "hono/jwt";
-import { env } from "hono/adapter";
 import { HeaderSchema } from "../../../lib/header";
+import { TokenPayload, verifyTokenMiddleware } from "../../../lib/middlewares/token";
 const app = createHono()
 
 app.post(
     "/",
     zValidator("json", z.object({
         course_sigle: z.string(),
-        nickname: z.string(),
         year: z.number().min(2013),
         section_number: z.number().min(1).max(100),
         liked: z.boolean(),
@@ -18,18 +16,11 @@ app.post(
         estimated_credits: z.number().min(1),
     })),
     zValidator("header", HeaderSchema),
+    verifyTokenMiddleware,
     async (c) => {
         try {
-            const { osuctoken } = c.req.valid("header")
-            const { nickname, year, course_sigle, section_number, liked, comment, estimated_credits } = c.req.valid("json")
-
-            const user = await c.env.DB.prepare(`SELECT secret_key FROM useraccount WHERE nickname = ?`).bind(nickname).first()
-
-            if (!user)
-                return c.json("Usuario no encontrado", 404)
-
-            const { SECRET_GLOBAL_KEY } = env(c);
-            const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256")
+            const { year, course_sigle, section_number, liked, comment, estimated_credits } = c.req.valid("json")
+            const payload: TokenPayload = c.get("jwtPayload")
             await c.env.DB.prepare(`
                 INSERT INTO review(
                 course_sigle, 
@@ -53,7 +44,7 @@ app.post(
                 `)
                 .bind(
                     course_sigle,
-                    payload?.email_hash,
+                    payload.email_hash,
                     year,
                     section_number,
                     liked,
@@ -81,7 +72,6 @@ app.put(
         "json",
         z.object({
             course_sigle: z.string(),
-            nickname: z.string(),
             year: z.number().min(2013),
             section_number: z.number().min(1).max(100),
             liked: z.boolean(),
@@ -93,22 +83,13 @@ app.put(
         "header",
         HeaderSchema
     ),
+    verifyTokenMiddleware,
     async (c) => {
         try {
-            const { osuctoken } = c.req.valid("header");
-            const { course_sigle, nickname, year, section_number, liked, comment, estimated_credits } =
+            const { course_sigle, year, section_number, liked, comment, estimated_credits } =
                 c.req.valid("json");
 
-            const user = await c.env.DB.prepare(
-                `SELECT secret_key FROM useraccount WHERE nickname = ?`
-            )
-                .bind(nickname)
-                .first();
-
-            if (!user) return c.json("Usuario no encontrado", 404);
-
-            const { SECRET_GLOBAL_KEY } = env(c);
-            const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256");
+            const payload: TokenPayload = c.get("jwtPayload")
 
             const result = await c.env.DB.prepare(
                 `
@@ -128,7 +109,7 @@ app.put(
                     liked,
                     comment,
                     estimated_credits,
-                    payload?.email_hash,
+                    payload.email_hash,
                     course_sigle
                 )
                 .run();
@@ -156,35 +137,22 @@ app.delete(
         "json",
         z.object({
             course_sigle: z.string(),
-            nickname: z.string(),
         })
     ),
     zValidator(
         "header",
         HeaderSchema
     ),
+    verifyTokenMiddleware,
     async (c) => {
         try {
-            const { osuctoken } = c.req.valid("header");
-            const { course_sigle, nickname } = c.req.valid("json");
+            const { course_sigle } = c.req.valid("json");
+            const payload: TokenPayload = c.get("jwtPayload")
 
-            const user = await c.env.DB.prepare(
-                `SELECT secret_key FROM useraccount WHERE nickname = ?`
-            )
-                .bind(nickname)
-                .first();
-
-            if (!user) return c.json("Usuario no encontrado", 404);
-
-            const { SECRET_GLOBAL_KEY } = env(c);
-            const payload = await verify(osuctoken, user.secret_key + SECRET_GLOBAL_KEY, "HS256");
-
-            const result = await c.env.DB.prepare(
-                `
-          DELETE FROM review
-          WHERE email_hash = ? AND course_sigle = ?
-          `
-            )
+            const result = await c.env.DB.prepare(`
+                DELETE FROM review
+                WHERE email_hash = ? AND course_sigle = ?
+            `)
                 .bind(payload?.email_hash, course_sigle)
                 .run();
 

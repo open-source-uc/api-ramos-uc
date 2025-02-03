@@ -1,15 +1,15 @@
 import { zValidator } from "@hono/zod-validator";
-import { verifyTokenMiddleware } from "../../../lib/middlewares/token";
-import { PERMISSIONS, verifyTokenOnePermision } from "../../../lib/middlewares/perms";
+import { verifyTokenMiddleware } from "../../../../lib/middlewares/token";
+import { PERMISSIONS, verifyTokenOnePermision } from "../../../../lib/middlewares/perms";
 import { z } from "zod";
-import createHono from "../../../lib/honoBase";
-import { HeaderSchema } from "../../../lib/header";
+import createHono from "../../../../lib/honoBase";
+import { HeaderSchema } from "../../../../lib/header";
 
 const app = createHono()
 
-// 1. Update reviews
-app.put(
-    "/",
+
+app.post(
+    "/permission",
     zValidator("json", z.object({
         sigle: z.string().min(1),
         name: z.string().min(1),
@@ -22,9 +22,9 @@ app.put(
     verifyTokenMiddleware,
     verifyTokenOnePermision(PERMISSIONS.SUDO),
     (c) => c.json({ message: "hello" }, 501))
-// 2. Delete reviews 
+
 app.delete(
-    "/",
+    "/permission",
     zValidator("json", z.object({
         sigle: z.string().min(1),
         name: z.string().min(1),
@@ -37,4 +37,5 @@ app.delete(
     verifyTokenMiddleware,
     verifyTokenOnePermision(PERMISSIONS.SUDO),
     (c) => c.json({ message: "hello" }, 501))
+
 export default app

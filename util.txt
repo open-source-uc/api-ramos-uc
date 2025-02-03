@@ -1,0 +1,2 @@
+npx wrangler d1 execute ramos-uc --local --command="INSERT INTO userpermission VALUES ('7585772e0dfc889efc276c7a6b51fb83ef13aaa71cc39f68ddce6e086b38092f', 'SUDO')"
+npx wrangler d1 execute ramos-uc --local --command="DELETE FROM review; DELETE FROM useraccount"

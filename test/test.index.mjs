@@ -1,4 +1,6 @@
 import "./test.auth.mjs"
-import "./test.userpanel.mjs"
-import "./test.general.mjs"
 import "./test.course.mjs"
+import "./test.general.mjs"
+import "./test.user.panel.mjs"
+import "./test.user.reviews.mjs"
+import "./test.global.reviews.mjs"

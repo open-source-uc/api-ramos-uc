@@ -5,7 +5,7 @@ import { env } from "hono/adapter";
 import { sign } from "hono/jwt";
 import { HeaderSchema } from "../../../lib/header";
 import { UserAccountUpdateSchema, UserPasswordUpdateSchema } from "../types";
-import { TokenPayload, verifyTokenMiddleware } from "../../../lib/token";
+import { TokenPayload, verifyTokenMiddleware } from "../../../lib/middlewares/token";
 
 const app = createHono();
 
@@ -33,6 +33,8 @@ app.get(
         )
             .bind(payload.email_hash)
             .first();
+
+
         return c.json({
             user: result
         }, 200)
@@ -49,7 +51,7 @@ app.put(
             const payload: TokenPayload = c.get("jwtPayload")
             const { nickname, admission_year, career_name } = c.req.valid("json")
 
-            await c.env.DB.prepare(
+            const result = await c.env.DB.prepare(
                 `UPDATE useraccount
                 SET
                     nickname = ?,
@@ -58,8 +60,7 @@ app.put(
                 WHERE email_hash = ?`
             )
                 .bind(nickname, admission_year, career_name, payload.email_hash)
-                .run();
-
+                .first();
 
             return c.json(
                 {
@@ -100,7 +101,7 @@ app.patch(
 
             const newHashedPassword = await bcrypt.hash(newPassword, 10);
 
-            const result = await c.env.DB.prepare(
+            await c.env.DB.prepare(
                 `UPDATE useraccount
                 SET 
                 password = ?,
@@ -110,11 +111,19 @@ app.patch(
                 .bind(newHashedPassword, payload.email_hash)
                 .first();
 
+            const user2 = await c.env.DB.prepare(`
+                SELECT token_version FROM useraccount
+                WHERE email_hash = ?
+            `).bind(payload.email_hash).first()
+
+            if (!user2)
+                return c.json({ message: "Error muy extraño" }, 500);
+
             const { SECRET_GLOBAL_KEY } = env(c)
             const token = await sign(
                 {
                     email_hash: payload.email_hash,
-                    token_version: result?.token_version
+                    token_version: user2?.token_version,
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"

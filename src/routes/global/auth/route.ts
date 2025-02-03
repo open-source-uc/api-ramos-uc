@@ -36,7 +36,7 @@ app.post(
             const token = await sign(
                 {
                     email_hash: email_hash,
-                    token_version: result?.token_version
+                    token_version: result?.token_version,
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"
@@ -81,7 +81,7 @@ app.post(
             const token = await sign(
                 {
                     email_hash: email_hash,
-                    token_version: found?.token_version
+                    token_version: found?.token_version,
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"

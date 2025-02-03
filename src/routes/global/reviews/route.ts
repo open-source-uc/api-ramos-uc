@@ -121,4 +121,39 @@ app.get("/user/:nickname",
         return c.json({ reviews: result.results }, 200)
     })
 
+
+app.get("/user/:nickname/:sigle",
+    zValidator("param", z.object({
+        nickname: z.string().min(1),
+        sigle: z.string().min(1)
+    })), async (c) => {
+
+        const { nickname, sigle } = c.req.valid("param")
+
+        const result = await c.env.DB.prepare(`
+                SELECT 
+                    r.course_sigle,
+                    r.year,
+                    r.section_number,
+                    r.liked,
+                    r.comment,
+                    r.estimated_credits,
+                    r.date,
+                    ua.nickname
+                FROM review AS r
+                JOIN useraccount AS ua 
+                    ON r.email_hash = ua.email_hash
+                WHERE 
+                r.status = 'visible' 
+                AND
+                ua.nickname = ?
+                AND
+                r.course_sigle = ?
+            `).bind(nickname, sigle).first()
+
+        if (!result)
+            return c.json({ message: "Not found" }, 404)
+
+        return c.json({ review: result }, 200)
+    })
 export default app

@@ -3,6 +3,9 @@ import assert from 'node:assert'
 import process from "node:process"
 
 const TEST_BASE_URL = process.env.TEST_BASE_URL
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 test("Test obtener, editar, y cambiar contraseña de usuario", async (t) => {
     let token
@@ -59,7 +62,7 @@ test("Test obtener, editar, y cambiar contraseña de usuario", async (t) => {
             }
         })
     })
-
+    await delay(1500)
     await t.test("change password", async () => {
         let res = await fetch(`${TEST_BASE_URL}/user`, {
             method: "PATCH",

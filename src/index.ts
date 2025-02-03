@@ -5,6 +5,11 @@ import course from "./routes/global/courses/route"
 import userReviews from "./routes/users/reviews/route"
 import userPanel from "./routes/users/panel/route"
 import reviews from "./routes/global/reviews/route"
+import adminCourse from "./routes/admin/courses/route"
+import adminReviews from "./routes/admin/reviews/route"
+import adminUserPermission from "./routes/admin/users/permission/route"
+import adminUserManager from "./routes/admin/users/manager/route"
+
 import { cors } from 'hono/cors'
 
 const app = createHono()
@@ -22,4 +27,9 @@ app.route("/course", course)
 app.route("/user/reviews", userReviews)
 app.route("/user", userPanel)
 app.route("/reviews", reviews)
+app.route("/admin/course", adminCourse)
+app.route("/admin/reviews", adminReviews)
+app.route("/admin/user/permission", adminUserPermission)
+app.route("/admin/user/manager", adminUserManager)
+
 export default app
