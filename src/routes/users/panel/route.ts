@@ -44,7 +44,7 @@ app.put(
     "/",
     zValidator("json", UserAccountUpdateSchema, (result, c) => {
         if (!result.success)
-            return c.json({ message: result.error.errors[0].message }, 400)
+            return c.json({ message: result.error }, 400)
         const currentYear = new Date().getFullYear()
 
         if (!(currentYear - 12 <= result.data.admission_year))
