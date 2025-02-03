@@ -6,15 +6,17 @@ import userReviews from "./routes/users/reviews/route"
 import userPanel from "./routes/users/panel/route"
 import reviews from "./routes/global/reviews/route"
 import adminCourse from "./routes/admin/courses/route"
-import adminReviews from "./routes/admin/reviews/route"
+import adminReviews from "./routes/admin/reviews/get"
 import adminUserPermission from "./routes/admin/users/permission/route"
 import adminUserManager from "./routes/admin/users/manager/route"
 
 import { cors } from 'hono/cors'
+import { swaggerUI } from '@hono/swagger-ui';
 
 const app = createHono()
 
 app.use("/*", cors())
+app.get('/ui', swaggerUI({ url: '/doc' }))
 
 app.get('/', (c) => c.json({
   message: "Hola mundo",

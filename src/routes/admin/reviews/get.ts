@@ -1,21 +1,32 @@
 import { zValidator } from "@hono/zod-validator";
 import createHono from "../../../lib/honoBase";
 import { z } from "zod";
+import { verifyTokenMiddleware } from "../../../lib/middlewares/token";
+import { PERMISSIONS, verifyTokenOnePermision } from "../../../lib/middlewares/perms";
+import { HeaderSchema } from "../../../lib/header";
 
 const app = createHono()
 
-// 1. Route for get all reviews 50 x page
-app.get("/", zValidator("query", z.object({
-    page: z.string().transform((val) => parseInt(val, 10))
-        .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" })
-        .refine((val) => val >= 0 && val <= 1000, {
-            message: 'El parámetro "page" debe estar entre 0 y 1000',
-        }).optional(),
-})), async (c) => {
+const sudoMiddleware = verifyTokenOnePermision(PERMISSIONS.SUDO)
 
-    const { page } = c.req.valid("query")
+app.get(
+    "/",
+    zValidator("query", z.object({
+        page: z.string().transform((val) => parseInt(val, 10))
+            .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" })
+            .refine((val) => val >= 0 && val <= 1000, {
+                message: 'El parámetro "page" debe estar entre 0 y 1000',
+            }).optional(),
+        status: z.enum(["visible", "hidden"]).optional()
+    })),
+    zValidator("header", HeaderSchema),
+    verifyTokenMiddleware,
+    sudoMiddleware,
+    async (c) => {
 
-    const result = await c.env.DB.prepare(`
+        const { page, status } = c.req.valid("query")
+
+        const result = await c.env.DB.prepare(`
         SELECT 
             r.course_sigle,
             r.year,
@@ -24,18 +35,20 @@ app.get("/", zValidator("query", z.object({
             r.comment,
             r.estimated_credits,
             r.date,
-            ua.nickname
+            ua.nickname,
+            ua.email_hash
         FROM review AS r
         JOIN useraccount AS ua 
             ON r.email_hash = ua.email_hash
-        WHERE r.status = 'visible'
-        ORDER BY r.date
+        WHERE 
+            (? IS NULL OR r.status = ?)
+        ORDER BY date
         LIMIT 50 
         OFFSET 50 * (?);
-    `).bind(page ?? 0).run()
+    `).bind(status ?? null, status ?? null, page ?? 0).run()
 
-    return c.json({ reviews: result.results }, 200)
-})
+        return c.json({ reviews: result.results }, 200)
+    })
 
 app.get("/course/:sigle",
     zValidator("param", z.object({
@@ -47,10 +60,15 @@ app.get("/course/:sigle",
             .refine((val) => val >= 0 && val <= 1000, {
                 message: 'El parámetro "page" debe estar entre 0 y 1000',
             }).optional(),
-    })), async (c) => {
+        status: z.enum(["visible", "hidden"]).optional()
+    })),
+    zValidator("header", HeaderSchema),
+    verifyTokenMiddleware,
+    sudoMiddleware,
+    async (c) => {
 
         const { sigle } = c.req.valid("param")
-        const { page } = c.req.valid("query")
+        const { page, status } = c.req.valid("query")
 
         const result = await c.env.DB.prepare(`
             SELECT 
@@ -61,18 +79,18 @@ app.get("/course/:sigle",
                 r.comment,
                 r.estimated_credits,
                 r.date,
-                ua.nickname
+                ua.nickname,
+                ua.email_hash
             FROM review AS r
             JOIN useraccount AS ua 
                 ON r.email_hash = ua.email_hash
             WHERE 
-            r.status = 'visible' 
+            (? IS NULL OR r.status = ?)
             AND
             r.course_sigle = ?
-            ORDER BY r.date
             LIMIT 50 
             OFFSET 50 * (?);
-        `).bind(sigle, page ?? 0).run()
+        `).bind(status ?? null, status ?? null, sigle, page ?? 0).run()
 
         if (result.meta.rows_read === 0)
             return c.json({ message: "Not found any review" }, 404)
@@ -91,10 +109,15 @@ app.get("/user/:nickname",
             .refine((val) => val >= 0 && val <= 1000, {
                 message: 'El parámetro "page" debe estar entre 0 y 1000',
             }).optional(),
-    })), async (c) => {
+        status: z.enum(["visible", "hidden"]).optional()
+    })),
+    zValidator("header", HeaderSchema),
+    verifyTokenMiddleware,
+    sudoMiddleware,
+    async (c) => {
 
         const { nickname } = c.req.valid("param")
-        const { page } = c.req.valid("query")
+        const { page, status } = c.req.valid("query")
 
         const result = await c.env.DB.prepare(`
             SELECT 
@@ -105,18 +128,18 @@ app.get("/user/:nickname",
                 r.comment,
                 r.estimated_credits,
                 r.date,
-                ua.nickname
+                ua.nickname,
+                ua.email_hash
             FROM review AS r
             JOIN useraccount AS ua 
                 ON r.email_hash = ua.email_hash
             WHERE 
-            r.status = 'visible' 
+            (? IS NULL OR r.status = ?)
             AND
             ua.nickname = ?
-            ORDER BY r.date
             LIMIT 50 
             OFFSET 50 * (?);
-        `).bind(nickname, page ?? 0).run()
+        `).bind(status ?? null, status ?? null, nickname, page ?? 0).run()
 
         if (result.meta.rows_read === 0)
             return c.json({ message: "Not found any review" }, 404)
@@ -124,39 +147,4 @@ app.get("/user/:nickname",
         return c.json({ reviews: result.results }, 200)
     })
 
-
-app.get("/user/:nickname/:sigle",
-    zValidator("param", z.object({
-        nickname: z.string().min(1),
-        sigle: z.string().min(1)
-    })), async (c) => {
-
-        const { nickname, sigle } = c.req.valid("param")
-
-        const result = await c.env.DB.prepare(`
-                SELECT 
-                    r.course_sigle,
-                    r.year,
-                    r.section_number,
-                    r.liked,
-                    r.comment,
-                    r.estimated_credits,
-                    r.date,
-                    ua.nickname
-                FROM review AS r
-                JOIN useraccount AS ua 
-                    ON r.email_hash = ua.email_hash
-                WHERE 
-                r.status = 'visible' 
-                AND
-                ua.nickname = ?
-                AND
-                r.course_sigle = ?
-            `).bind(nickname, sigle).first()
-
-        if (!result)
-            return c.json({ message: "Not found" }, 404)
-
-        return c.json({ review: result }, 200)
-    })
 export default app
