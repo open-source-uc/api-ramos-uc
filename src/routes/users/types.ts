@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-const currentYear = new Date().getFullYear();
 
 export const UserAccountUpdateSchema = z.object({
     nickname: z.string().min(4).max(100, { message: "El apodo no debe exceder los 100 caracteres." }),
@@ -34,8 +33,11 @@ export const UserAccountCreateSchema = z.object({
             message: 'La contraseña debe contener al menos un número.',
         }),
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
-    admision_year: z.number().int().refine((val) => val >= currentYear - 12 && val <= currentYear, {
-        message: `El año de admisión debe estar entre ${currentYear - 12} y ${currentYear}.`,
+    admision_year: z.number().int().refine((val) => {
+        const currentYear = new Date().getFullYear();
+        val >= currentYear - 12 && val <= currentYear
+    }, {
+        message: `El año de admisión debe estar entre ${new Date().getFullYear() - 12} y ${new Date().getFullYear()}.`,
     }),
     carrer_name: z.string(),
 });
