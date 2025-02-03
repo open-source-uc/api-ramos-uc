@@ -31,7 +31,7 @@ export const UserAccountCreateSchema = z.object({
             message: 'La contraseña debe contener al menos un número.',
         }),
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
-    admision_year: z.number().int(),
+    admission_year: z.number().int(),
     carrer_name: z.string(),
 });
 

@@ -42,7 +42,16 @@ app.get(
 
 app.put(
     "/",
-    zValidator("json", UserAccountUpdateSchema),
+    zValidator("json", UserAccountUpdateSchema, (result, c) => {
+        if (!result.success)
+            return c.json({ message: result.error.errors[0].message }, 400)
+        const currentYear = new Date().getFullYear()
+
+        if (!(currentYear - 12 <= result.data.admission_year))
+            return c.json({
+                message: "El año de admision debe ser mayor a " + (currentYear - 12)
+            })
+    }),
     zValidator("header", HeaderSchema),
     verifyTokenMiddleware,
     async (c) => {

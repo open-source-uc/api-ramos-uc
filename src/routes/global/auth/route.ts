@@ -13,11 +13,16 @@ app.post(
     zValidator('json', UserAccountCreateSchema, (result, c) => {
         if (!result.success)
             return c.json({ message: result.error.errors[0].message }, 400)
-        return c.json({ date: new Date().getFullYear() })
+        const currentYear = new Date().getFullYear()
+
+        if (!(currentYear - 12 <= result.data.admission_year))
+            return c.json({
+                message: "El año de admision debe ser mayor a " + (currentYear - 12)
+            })
     }),
     async (c) => {
         try {
-            const { email, password, nickname, admision_year, carrer_name } = c.req.valid('json');
+            const { email, password, nickname, admission_year, carrer_name } = c.req.valid('json');
 
             const email_hash = await sha256(email);
 
@@ -30,7 +35,7 @@ app.post(
 
             const hashedPassword = await bcrypt.hash(password, 10)
 
-            const result = await c.env.DB.prepare("INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)").bind(email_hash, hashedPassword, nickname, admision_year, carrer_name).first()
+            const result = await c.env.DB.prepare("INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)").bind(email_hash, hashedPassword, nickname, admission_year, carrer_name).first()
 
 
             const { SECRET_GLOBAL_KEY } = env(c)
