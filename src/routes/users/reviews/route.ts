@@ -22,6 +22,14 @@ app.openapi(
         method: 'post',
         path: "/",
         tags: ['reviews'],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        middleware: [
+            verifyTokenMiddleware
+        ],
         request: {
             body: {
                 content: {
@@ -37,7 +45,6 @@ app.openapi(
                     },
                 },
             },
-            headers: HeaderSchema
         },
         responses: {
             201: {

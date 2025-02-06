@@ -11,9 +11,16 @@ import adminUserPermission from "./routes/admin/users/permission/route"
 import adminUserManager from "./routes/admin/users/manager/route"
 import { swaggerUI } from '@hono/swagger-ui'
 import { cors } from 'hono/cors'
+import { z } from '@hono/zod-openapi';
 
 const app = createHono()
 
+app.openAPIRegistry.registerComponent("securitySchemes", "osuctoken", {
+  type: "http",
+  scheme: "bearer",
+  in: "header",
+  description: "Bearer token",
+})
 app.use("/*", cors())
 
 app.route("/general", general)

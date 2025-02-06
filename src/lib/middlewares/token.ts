@@ -11,7 +11,8 @@ export interface TokenPayload extends JWTPayload {
 
 export const verifyTokenMiddleware = createMiddleware<{ Bindings: Bindings }>(async (c, next) => {
     try {
-        const osuctoken = c.req.header("osuctoken")
+        const osuctoken = c.req.header("authorization")?.substring("Bearer ".length)
+
         if (!osuctoken)
             return c.json({
                 message: "Invalid token"
