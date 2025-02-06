@@ -11,12 +11,10 @@ import adminUserPermission from "./routes/admin/users/permission/route"
 import adminUserManager from "./routes/admin/users/manager/route"
 
 import { cors } from 'hono/cors'
-import { swaggerUI } from '@hono/swagger-ui';
 
 const app = createHono()
 
 app.use("/*", cors())
-app.get('/ui', swaggerUI({ url: '/doc' }))
 
 app.get('/', (c) => c.json({
   message: "Hola mundo",
