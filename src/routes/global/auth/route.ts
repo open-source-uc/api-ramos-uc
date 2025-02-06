@@ -5,20 +5,57 @@ import { env } from 'hono/adapter'
 import { sign } from "hono/jwt";
 import { sha256 } from "../../../lib/hash";
 import { UserAccountCreateSchema, UserAccountLoginSchema } from "../../users/types";
+import { createRoute, z } from "@hono/zod-openapi";
 
 const app = createHono()
 
-app.post(
-    '/register',
-    zValidator('json', UserAccountCreateSchema, (result, c) => {
-        if (!result.success)
-            return c.json({ message: result.error }, 400)
-        const currentYear = new Date().getFullYear()
-
-        if (!(currentYear - 12 <= result.data.admission_year))
-            return c.json({
-                message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
-            })
+app.openapi(
+    createRoute({
+        method: 'post',
+        path: '/register',
+        tags: ['auth'],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: UserAccountCreateSchema,
+                    },
+                },
+            },
+        },
+        responses: {
+            201: {
+                description: "Usuaro creado exitosamente",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            nickname: z.string(),
+                            token: z.string(),
+                        }),
+                    },
+                },
+            },
+            409: {
+                description: "El email ya esta registrado",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+        },
     }),
     async (c) => {
         try {
@@ -26,19 +63,28 @@ app.post(
 
             const email_hash = await sha256(email);
 
-            const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?").bind(email_hash).first()
+            const found = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?")
+                .bind(email_hash)
+                .first();
 
-            if (found !== null)
-                return c.json({
-                    message: "El email ya esta registrado :c"
-                }, 409)
+            if (found !== null) {
+                return c.json(
+                    {
+                        message: "El email ya esta registrado :c",
+                    },
+                    409
+                );
+            }
 
-            const hashedPassword = await bcrypt.hash(password, 10)
+            const hashedPassword = await bcrypt.hash(password, 10);
 
-            const result = await c.env.DB.prepare("INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)").bind(email_hash, hashedPassword, nickname, admission_year, carrer_name).first()
+            const result = await c.env.DB.prepare(
+                "INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)"
+            )
+                .bind(email_hash, hashedPassword, nickname, admission_year, carrer_name)
+                .first();
 
-
-            const { SECRET_GLOBAL_KEY } = env(c)
+            const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     email_hash: email_hash,
@@ -46,25 +92,79 @@ app.post(
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"
-            )
+            );
 
-            return c.json({
-                nickname: nickname,
-                token
-            }, 201)
+            return c.json(
+                {
+                    nickname: nickname,
+                    token,
+                },
+                201
+            );
         } catch (error) {
-            return c.json({
-                message: error?.toString(), error: true
-            }, 500)
+            const errorMessage = error instanceof Error ? error.toString() : "Error interno";
+            return c.json(
+                {
+                    message: errorMessage,
+                },
+                500
+            );
         }
     }
 );
 
-app.post(
-    '/login',
-    zValidator('json', UserAccountLoginSchema, (result, c) => {
-        if (!result.success)
-            return c.json({ message: result.error.errors[0].message });
+// '/login',
+// zValidator('json', UserAccountLoginSchema, (result, c) => {
+//     if (!result.success)
+//         return c.json({ message: result.error.errors[0].message });
+// }),
+app.openapi(
+    createRoute({
+        method: 'post',
+        path: '/login',
+        tags: ['auth'],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: UserAccountLoginSchema,
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: "Usuario logeado exitosamente",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            nickname: z.string(),
+                            token: z.string(),
+                        }),
+                    },
+                },
+            },
+            401: {
+                description: "La contraseña o el correo es incorrecto",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+        },
     }),
     async (c) => {
         try {
@@ -83,7 +183,7 @@ app.post(
             if (!isValidPassword)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
-            const { SECRET_GLOBAL_KEY } = env(c)
+            const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     email_hash: email_hash,
@@ -91,20 +191,21 @@ app.post(
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"
-            )
+            );
 
             return c.json({
                 nickname: found.nickname,
-                token
+                token,
             }, 200);
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.toString() : "Error interno";
             return c.json({
-                message: error?.toString(),
-                error: true
+                message: errorMessage
             }, 500);
         }
     }
 );
+
 
 
 export default app;

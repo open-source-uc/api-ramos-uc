@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
 
 export type Bindings = {
     DB: D1Database;
@@ -6,6 +6,6 @@ export type Bindings = {
 };
 
 export default function createHono() {
-    const app = new Hono<{ Bindings: Bindings }>()
+    const app = new OpenAPIHono<{ Bindings: Bindings }>()
     return app
 }

@@ -52,7 +52,7 @@ export const UserAccountCreateSchema = z.object({
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
     admission_year: z.number().int(),
     carrer_name: z.string(),
-});
+}).openapi("UserAccountCreateSchema");
 
 export const UserAccountLoginSchema = z.object({
     email: z.string().email().refine((val) => val.endsWith('.uc.cl') || val.endsWith('@uc.cl'), {
@@ -65,4 +65,4 @@ export const UserAccountLoginSchema = z.object({
         .refine((val) => /[0-9]/.test(val), {
             message: 'La contraseña debe contener al menos un número.',
         })
-})
+}).openapi("UserAccountLoginSchema");
