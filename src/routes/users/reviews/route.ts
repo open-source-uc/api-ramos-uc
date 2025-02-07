@@ -1,21 +1,9 @@
-import { zValidator } from "@hono/zod-validator";
 import createHono from "../../../lib/honoBase";
 import { z } from "zod";
-import { HeaderSchema } from "../../../lib/header";
-import { TokenPayload, verifyTokenMiddleware } from "../../../lib/middlewares/token";
+import { TokenPayload } from "../../../lib/middlewares/token";
 import { createRoute } from "@hono/zod-openapi";
-const app = createHono()
-// "/",
-// zValidator("json", z.object({
-//     course_sigle: z.string(),
-//     year: z.number().min(2013),
-//     section_number: z.number().min(1).max(100),
-//     liked: z.boolean(),
-//     comment: z.string().min(10).max(500),
-//     estimated_credits: z.number().min(1),
-// })),
-// zValidator("header", HeaderSchema),
-// verifyTokenMiddleware,
+
+const app = createHono();
 
 app.openapi(
     createRoute({
@@ -27,16 +15,14 @@ app.openapi(
                 osuctoken: []
             }
         ],
-        middleware: [
-            verifyTokenMiddleware
-        ],
+        description: "Crear review con la id que esta en el token",
         request: {
             body: {
                 content: {
                     'application/json': {
                         schema: z.object({
                             course_sigle: z.string(),
-                            year: z.number().min(2013),
+                            year: z.number(),
                             section_number: z.number().min(1).max(100),
                             liked: z.boolean(),
                             comment: z.string().min(10).max(500),
@@ -66,12 +52,29 @@ app.openapi(
                         }),
                     },
                 },
+            },
+            400: {
+                description: "Error de validación",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
             }
         }
     }),
     async (c) => {
         try {
             const { year, course_sigle, section_number, liked, comment, estimated_credits } = c.req.valid("json")
+            const currentYear = new Date().getFullYear()
+            if (!(currentYear - 12 <= year))
+                return c.json({
+                    message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
+                }, 400)
+
+
             const payload: TokenPayload = c.get("jwtPayload")
             await c.env.DB.prepare(`
                 INSERT INTO review(
@@ -111,10 +114,10 @@ app.openapi(
             }, 201)
 
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.toString() : "Error interno";
+            console.log(error)
             return c.json(
                 {
-                    message: errorMessage,
+                    message: "Server Error",
                 },
                 500
             );
@@ -122,28 +125,85 @@ app.openapi(
     }
 );
 
-app.put(
-    "/",
-    zValidator(
-        "json",
-        z.object({
-            course_sigle: z.string(),
-            year: z.number().min(2013),
-            section_number: z.number().min(1).max(100),
-            liked: z.boolean(),
-            comment: z.string().min(10).max(500),
-            estimated_credits: z.number().min(1),
-        })
-    ),
-    zValidator(
-        "header",
-        HeaderSchema
-    ),
-    verifyTokenMiddleware,
-    async (c) => {
+app.openapi(
+    createRoute({
+        method: 'put',
+        path: "/",
+        tags: ['reviews'],
+        description: "Actualizar review con la id de usuario que esta en el token",
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            course_sigle: z.string(),
+                            year: z.number(),
+                            section_number: z.number().min(1).max(100),
+                            liked: z.boolean(),
+                            comment: z.string().min(10).max(500),
+                            estimated_credits: z.number().min(1),
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: "Reseña actualizada correctamente",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            404: {
+                description: "Reseña no encontrada",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            400: {
+                description: "Error de validación",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            }
+        }
+    }), async (c) => {
         try {
             const { course_sigle, year, section_number, liked, comment, estimated_credits } =
                 c.req.valid("json");
+
+            const currentYear = new Date().getFullYear()
+            if (!(currentYear - 12 <= year))
+                return c.json({
+                    message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
+                }, 400)
 
             const payload: TokenPayload = c.get("jwtPayload")
 
@@ -178,8 +238,7 @@ app.put(
         } catch (error) {
             return c.json(
                 {
-                    message: error?.toString(),
-                    error: true,
+                    message: "Server Error",
                 },
                 500
             );
@@ -187,19 +246,62 @@ app.put(
     }
 );
 
-app.delete(
-    "/",
-    zValidator(
-        "json",
-        z.object({
-            course_sigle: z.string(),
-        })
-    ),
-    zValidator(
-        "header",
-        HeaderSchema
-    ),
-    verifyTokenMiddleware,
+
+app.openapi(
+    createRoute({
+        method: 'delete',
+        path: "/",
+        tags: ['reviews'],
+        description: "Actualizar review con la id de usuario que esta en el token",
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            course_sigle: z.string(),
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: "Reseña eliminada correctamente",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            404: {
+                description: "Reseña no encontrada",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            }
+        }
+    }),
     async (c) => {
         try {
             const { course_sigle } = c.req.valid("json");
@@ -220,8 +322,7 @@ app.delete(
         } catch (error) {
             return c.json(
                 {
-                    message: error?.toString(),
-                    error: true,
+                    message: "Server Error",
                 },
                 500
             );

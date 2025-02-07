@@ -6,61 +6,151 @@ import { sign } from "hono/jwt";
 import { HeaderSchema } from "../../../lib/header";
 import { UserAccountUpdateSchema, UserPasswordUpdateSchema } from "../types";
 import { TokenPayload, verifyTokenMiddleware } from "../../../lib/middlewares/token";
+import { createRoute, z } from "@hono/zod-openapi";
 
 const app = createHono();
 
-
-app.get(
-    "/",
-    zValidator("header", HeaderSchema, (result, c) => {
-        if (!result.success)
-            return c.json({
-                message: result.error.errors[0].message
-            }, 400)
+app.openapi(
+    createRoute({
+        method: "get",
+        path: "/",
+        tags: ["panel usuario"],
+        description: "Obtener datos del usuario, desde la ID del usuario que esta en el token",
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        responses: {
+            200: {
+                description: "Datos del usuario",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            user: z
+                                .object({
+                                    nickname: z.string(),
+                                    admission_year: z.number(),
+                                    career_name: z.string(),
+                                })
+                                .nullable()
+                                .openapi("PerfilUsuarioSchema"),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    "application/json": {
+                        schema: z
+                            .object({
+                                message: z.string(),
+                            })
+                            .openapi("ErrorResponse"),
+                    },
+                },
+            },
+        },
     }),
-    verifyTokenMiddleware,
     async (c) => {
+        try {
+            const payload: TokenPayload = c.get("jwtPayload");
 
-        const payload: TokenPayload = c.get("jwtPayload")
+            const result = await c.env.DB.prepare(
+                `
+                SELECT 
+                    nickname,
+                    admission_year,
+                    career_name
+                FROM useraccount
+                WHERE email_hash = ?
+                `
+            )
+                .bind(payload.email_hash)
+                .first<{
+                    nickname: string;
+                    admission_year: number;
+                    career_name: string;
+                }>();
 
-        const result = await c.env.DB.prepare(`
-            SELECT 
-            nickname,
-            admission_year,
-            career_name
-            FROM useraccount
-            WHERE email_hash = ?`
-        )
-            .bind(payload.email_hash)
-            .first();
+            return c.json({ user: result }, 200);
+        } catch (error) {
+            return c.json({ message: "Server Error" }, 500);
+        }
+    }
+);
 
-
-        return c.json({
-            user: result
-        }, 200)
-    })
-
-app.put(
-    "/",
-    zValidator("json", UserAccountUpdateSchema, (result, c) => {
-        if (!result.success)
-            return c.json({ message: result.error }, 400)
-        const currentYear = new Date().getFullYear()
-
-        if (!(currentYear - 12 <= result.data.admission_year))
-            return c.json({
-                message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
-            })
+app.openapi(
+    createRoute({
+        path: "/",
+        method: "put",
+        description: "Actualizar datos del usuario que esta en el token",
+        tags: ["panel usuario"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            body: {
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            nickname: z.string(),
+                            admission_year: z.number(),
+                            career_name: z.string(),
+                        }).openapi("ActualizarPerfilUsuarioSchema"),
+                    },
+                },
+            }
+        },
+        responses: {
+            200: {
+                description: "Datos actualizados correctamente",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }).openapi("SuccessResponse"),
+                    },
+                },
+            },
+            400: {
+                description: "Error de validación",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }).openapi("ErrorResponse"),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }).openapi("ErrorResponse"),
+                    },
+                },
+            },
+        }
     }),
-    zValidator("header", HeaderSchema),
-    verifyTokenMiddleware,
     async (c) => {
         try {
 
             const payload: TokenPayload = c.get("jwtPayload")
             const { nickname, admission_year, career_name } = c.req.valid("json")
+            const currentYear = new Date().getFullYear()
 
-            const result = await c.env.DB.prepare(
+            if (!(currentYear - 12 <= admission_year))
+                return c.json({
+                    message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
+                }, 400)
+
+            await c.env.DB.prepare(
                 `UPDATE useraccount
                 SET
                     nickname = ?,
@@ -78,31 +168,101 @@ app.put(
                 200
             );
         } catch (error) {
-            return c.json({ message: error?.toString(), error: true }, 500);
+            return c.json({ message: "Server Error" }, 500);
         }
     }
 );
 
-app.patch(
-    "/",
-    zValidator("json", UserPasswordUpdateSchema, (result, c) => {
-        if (!result.success)
-            return c.json(result.error.errors[0].message, 400)
+app.openapi(
+    createRoute({
+        path: "/",
+        method: "patch",
+        description: "Actualizar contraseña del usuario que esta en el token",
+        tags: ["panel usuario"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            body: {
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            currentPassword: z.string(),
+                            newPassword: z.string(),
+                        }).openapi("ActualizarContraseñaUsuarioSchema"),
+                    },
+                },
+            }
+        },
+        responses: {
+            200: {
+                description: "Contraseña actualizada correctamente",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                            token: z.string(),
+                        }).openapi("SuccessResponse"),
+                    },
+                },
+            },
+            400: {
+                description: "Error de validación",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }).openapi("ErrorResponse"),
+                    },
+                },
+            },
+            401: {
+                description: "Contraseña actual incorrecta",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }).openapi("ErrorResponse"),
+                    },
+                },
+            },
+            404: {
+                description: "Usuario no encontrado",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }).openapi("NotFoundResponse"),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                            error: z.boolean(),
+                        }).openapi("ErrorResponse"),
+                    },
+                },
+            },
+        }
     }),
-    zValidator("header", HeaderSchema),
-    verifyTokenMiddleware,
     async (c) => {
         try {
             const { currentPassword, newPassword } = c.req.valid("json");
 
-            const payload: TokenPayload = c.get("jwtPayload")
+            const payload: TokenPayload = c.get("jwtPayload");
 
             const user = await c.env.DB.prepare("SELECT * FROM useraccount WHERE email_hash = ?")
                 .bind(payload.email_hash)
                 .first();
 
             if (!user)
-                return c.json({ message: "Usuario no encontrado" }, 404)
+                return c.json({ message: "Usuario no encontrado" }, 404);
 
             const isValid = await bcrypt.compare(currentPassword, user?.password as string);
             if (!isValid)
@@ -112,23 +272,25 @@ app.patch(
 
             await c.env.DB.prepare(
                 `UPDATE useraccount
-                SET 
-                password = ?,
-                token_version = (datetime('now'))
-                WHERE email_hash = ?`
+           SET 
+             password = ?,
+             token_version = (datetime('now'))
+           WHERE email_hash = ?`
             )
                 .bind(newHashedPassword, payload.email_hash)
                 .first();
 
             const user2 = await c.env.DB.prepare(`
-                SELECT token_version FROM useraccount
-                WHERE email_hash = ?
-            `).bind(payload.email_hash).first()
+          SELECT token_version FROM useraccount
+          WHERE email_hash = ?
+        `)
+                .bind(payload.email_hash)
+                .first();
 
             if (!user2)
-                return c.json({ message: "Error muy extraño" }, 500);
+                return c.json({ message: "Error muy extraño", error: true }, 500);
 
-            const { SECRET_GLOBAL_KEY } = env(c)
+            const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     email_hash: payload.email_hash,
@@ -136,13 +298,14 @@ app.patch(
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"
-            )
+            );
 
             return c.json({ message: "Contraseña actualizada correctamente", token }, 200);
         } catch (error) {
-            return c.json({ message: error?.toString(), error: true }, 500);
+            return c.json({ message: "Server Error", error: true }, 500);
         }
     }
 );
+
 
 export default app;
