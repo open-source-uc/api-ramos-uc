@@ -81,7 +81,7 @@ app.get(
         (? IS NULL OR sigle = ?) 
         AND
         (? IS NULL OR school = ?)
-        ORDER BY promedio, sigle
+        ORDER BY promedio DESC, sigle ASC
         LIMIT 50 OFFSET 50 * (?)
         `)
 
@@ -90,25 +90,6 @@ app.get(
         return c.json({ courses: result.results }, 200)
     }
 )
-// "/ofg",
-// zValidator("query", z.object({
-//     page: z.string().transform((val) => parseInt(val, 10))
-//         .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" })
-//         .refine((val) => val >= 0 && val <= 1000, {
-//             message: 'El parámetro "page" debe estar entre 0 y 1000',
-//         }).optional(),
-//     sigle: z.string().optional(),
-//     area: z.enum([
-//         "Artes",
-//         "Ecolog Integra y Sustentabilid",
-//         "Pensamiento Matematico",
-//         "Ciencias Sociales",
-//         "Salud y Bienestar",
-//         "Ciencia y Tecnologia",
-//         "Humanidades",
-//         "Formacion Filosofica",
-//         "Formacion Teologica"
-//     ]).optional()
 
 app.openapi(createRoute({
     path: "/ofg",
@@ -185,7 +166,7 @@ app.openapi(createRoute({
         (? IS NULL OR sigle = ?) 
         AND
         (? IS NULL OR area = ?)
-        ORDER BY promedio, sigle
+        ORDER BY promedio DESC, sigle ASC
         LIMIT 50 OFFSET 50 * (?)
         `)
 
