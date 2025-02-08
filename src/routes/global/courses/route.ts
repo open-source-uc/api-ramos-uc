@@ -126,7 +126,7 @@ app.openapi(
                 ? (school ? 'WHERE sigle = ? AND school = ?' : 'WHERE sigle = ?')
                 : (school ? 'WHERE school = ?' : '')
             }
-            ORDER BY promedio DESC, sigle ASC
+            ORDER BY promedio DESC
             LIMIT 50 OFFSET 50 * (?)
             `)
 
@@ -229,7 +229,7 @@ app.openapi(createRoute({
             area IS NOT NULL
             ${sigle !== undefined ? 'AND sigle = ?' : ''} 
             ${area !== undefined ? 'AND area = ?' : ''}
-        ORDER BY promedio DESC, sigle ASC
+        ORDER BY promedio DESC
         LIMIT 50 OFFSET 50 * (?)
         `)
 
