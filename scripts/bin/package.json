@@ -1,5 +1,0 @@
-{
-	"dependencies": {
-		"@hono/zod-openapi": "^0.18.4"
-	}
-}

@@ -1,10 +1,13 @@
-npx wrangler d1 execute ramos-uc --remote --file=../sql/drop_tables.sql
-echo Tablas dropeadas
-npx wrangler d1 execute ramos-uc --remote --file=../sql/create_tables.sql
-echo Tablas creadas
-npx wrangler d1 execute ramos-uc --remote --file=../sql/insert_defaults.sql
-echo Datos default insertados
+# npx wrangler d1 execute ramos-uc --remote --file=../sql/drop_tables.sql
+# echo Tablas dropeadas
+# npx wrangler d1 execute ramos-uc --remote --file=../sql/create_tables.sql
+# echo Tablas creadas
+# npx wrangler d1 execute ramos-uc --remote --file=../sql/insert_defaults.sql
+# echo Datos default insertados
 npx wrangler d1 execute ramos-uc --remote --file=../sql/triggers.sql
+echo "Triggers creados"
+npx wrangler d1 execute ramos-uc --remote --file=../sql/index.sql
+echo "Index creados"
 echo Insertando cursos
 npx wrangler d1 execute ramos-uc --remote --file=../sql/2025-1/2025-1.sql
 npx wrangler d1 execute ramos-uc --remote --file=../sql/2025-1/2025-2.sql

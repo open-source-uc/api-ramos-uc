@@ -56,20 +56,13 @@ CREATE TABLE review (
     FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash)
 );
 
-CREATE VIEW course_reviews_avg AS
-SELECT 
-    c.sigle,
-    c.name,
-    c.category,
-    c.school,
-    c.area,
-    c.credits,
-    CASE 
-        WHEN COUNT(r.course_sigle) = 0 THEN 0 
-        ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
-    END AS promedio,
-    COALESCE(AVG(r.estimated_credits), 0) AS promedio_creditos_est
-FROM course c
-LEFT JOIN review r ON c.sigle = r.course_sigle
-GROUP BY c.sigle, c.name, c.category, c.area, c.credits, c.school
-ORDER BY promedio DESC, c.sigle ASC;
+CREATE TABLE course_reviews_avg (
+    sigle TEXT PRIMARY KEY,
+    name TEXT,
+    category TEXT,
+    school TEXT,
+    area TEXT,
+    credits INTEGER,
+    promedio REAL,
+    promedio_creditos_est REAL
+);
