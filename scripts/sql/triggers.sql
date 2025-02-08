@@ -7,12 +7,12 @@ BEGIN
     UPDATE review SET date = datetime('now') WHERE rowid = NEW.rowid;
 END;
 
-DROP TRIGGER IF EXISTS insert_course_reviews_avg_course;
-CREATE TRIGGER insert_course_reviews_avg_course
+DROP TRIGGER IF EXISTS insert_course_reviews_course;
+CREATE TRIGGER insert_course_reviews_course
 AFTER INSERT ON course
 FOR EACH ROW
 BEGIN
-    INSERT INTO course_reviews_avg (
+    INSERT INTO course_reviews (
         sigle, name, category, school, area, credits, promedio, promedio_creditos_est
     )
     VALUES (
@@ -22,23 +22,23 @@ BEGIN
         NEW.school, 
         NEW.area, 
         NEW.credits, 
-        -1,  -- valor predeterminado para promedio
-        -1   -- valor predeterminado para promedio_creditos_est
+        NULL,  -- valor predeterminado para promedio
+        NULL   -- valor predeterminado para promedio_creditos_est
     );
 END;
 
-DROP TRIGGER IF EXISTS insert_course_reviews_avg;
-CREATE TRIGGER insert_course_reviews_avg
+DROP TRIGGER IF EXISTS insert_course_reviews;
+CREATE TRIGGER insert_course_reviews
 AFTER INSERT ON review
 FOR EACH ROW
 BEGIN
     -- Recalcular promedio y promedio_creditos_est para el curso afectado al insertar una nueva reseña
-    UPDATE course_reviews_avg
+    UPDATE course_reviews
     SET 
         promedio = (
             SELECT 
                 CASE 
-                    WHEN COUNT(r.course_sigle) = 0 THEN -1
+                    WHEN COUNT(r.course_sigle) = 0 THEN NULL
                     ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
                 END
             FROM review r
@@ -46,25 +46,25 @@ BEGIN
         ),
         promedio_creditos_est = (
             SELECT 
-                COALESCE(AVG(r.estimated_credits), -1)
+                AVG(r.estimated_credits)
             FROM review r
             WHERE r.course_sigle = NEW.course_sigle
         )
     WHERE sigle = NEW.course_sigle;
 END;
 
-DROP TRIGGER IF EXISTS update_course_reviews_avg;
-CREATE TRIGGER update_course_reviews_avg
+DROP TRIGGER IF EXISTS update_course_reviews;
+CREATE TRIGGER update_course_reviews
 AFTER UPDATE ON review
 FOR EACH ROW
 BEGIN
     -- Recalcular promedio y promedio_creditos_est para el curso afectado al actualizar una reseña
-    UPDATE course_reviews_avg
+    UPDATE course_reviews
     SET 
         promedio = (
             SELECT 
                 CASE 
-                    WHEN COUNT(r.course_sigle) = 0 THEN -1
+                    WHEN COUNT(r.course_sigle) = 0 THEN NULL
                     ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
                 END
             FROM review r
@@ -72,25 +72,25 @@ BEGIN
         ),
         promedio_creditos_est = (
             SELECT 
-                COALESCE(AVG(r.estimated_credits), -1)
+                AVG(r.estimated_credits)
             FROM review r
             WHERE r.course_sigle = NEW.course_sigle
         )
     WHERE sigle = NEW.course_sigle;
 END;
 
-DROP TRIGGER IF EXISTS delete_course_reviews_avg;
-CREATE TRIGGER delete_course_reviews_avg
+DROP TRIGGER IF EXISTS delete_course_reviews;
+CREATE TRIGGER delete_course_reviews
 AFTER DELETE ON review
 FOR EACH ROW
 BEGIN
     -- Recalcular promedio y promedio_creditos_est para el curso afectado al eliminar una reseña
-    UPDATE course_reviews_avg
+    UPDATE course_reviews
     SET 
         promedio = (
             SELECT 
                 CASE 
-                    WHEN COUNT(r.course_sigle) = 0 THEN -1
+                    WHEN COUNT(r.course_sigle) = 0 THEN NULL
                     ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
                 END
             FROM review r
@@ -98,7 +98,7 @@ BEGIN
         ),
         promedio_creditos_est = (
             SELECT 
-                COALESCE(AVG(r.estimated_credits), -1)
+                AVG(r.estimated_credits)
             FROM review r
             WHERE r.course_sigle = OLD.course_sigle
         )

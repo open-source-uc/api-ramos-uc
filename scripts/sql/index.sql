@@ -19,11 +19,17 @@ CREATE INDEX idx_review_liked ON review(liked);
 DROP INDEX IF EXISTS idx_review_estimated_credits;
 CREATE INDEX idx_review_estimated_credits ON review(estimated_credits);
 
-DROP INDEX IF EXISTS idx_course_reviews_avg_sigle_school;
-CREATE INDEX idx_course_reviews_avg_sigle_school ON course_reviews_avg (sigle, school);
+DROP INDEX IF EXISTS idx_course_reviews_sigle_school;
+CREATE INDEX idx_course_reviews_sigle_school ON course_reviews (sigle, school);
 
-DROP INDEX IF EXISTS idx_course_reviews_avg_sigle_area;
-CREATE INDEX idx_course_reviews_avg_sigle_area ON course_reviews_avg (sigle, area);
+DROP INDEX IF EXISTS idx_course_reviews_sigle_area;
+CREATE INDEX idx_course_reviews_sigle_area ON course_reviews (sigle, area);
 
-DROP INDEX IF EXISTS idx_course_reviews_avg_sigle_promedio;
-CREATE INDEX idx_course_reviews_avg_sigle_promedio ON course_reviews_avg (sigle, promedio);
+DROP INDEX IF EXISTS idx_course_reviews_sigle_promedio;
+CREATE INDEX idx_course_reviews_sigle_promedio ON course_reviews (sigle, promedio);
+
+DROP INDEX IF EXISTS idx_course_reviews_area;
+CREATE INDEX idx_course_reviews_area ON course_reviews (area);
+
+DROP INDEX IF EXISTS idx_course_reviews_promedio_sigle;
+CREATE INDEX idx_course_reviews_promedio_sigle ON course_reviews (promedio DESC, sigle ASC);

@@ -32,10 +32,10 @@ CREATE TABLE userpermission (
 CREATE TABLE course (
     sigle VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    credits INTEGER,
-    school VARCHAR(100),
-    area VARCHAR(100),
-    category VARCHAR(100)
+    credits INTEGER NOT NULL,
+    school VARCHAR(100) CHECK (school <> ''),
+    area VARCHAR(100) CHECK (area <> ''),
+    category VARCHAR(100) CHECK (category <> '')
 );
 
 
@@ -56,13 +56,13 @@ CREATE TABLE review (
     FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash)
 );
 
-CREATE TABLE course_reviews_avg (
+CREATE TABLE course_reviews (
     sigle TEXT PRIMARY KEY,
     name TEXT,
-    category TEXT,
-    school TEXT,
-    area TEXT,
-    credits INTEGER,
+    credits INTEGER NOT NULL,
+    school VARCHAR(100) CHECK (school <> ''),
+    area VARCHAR(100) CHECK (area <> ''),
+    category VARCHAR(100) CHECK (category <> ''),
     promedio REAL,
     promedio_creditos_est REAL
 );

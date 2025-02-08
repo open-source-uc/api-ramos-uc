@@ -1,13 +1,43 @@
+import { createRoute, z } from "@hono/zod-openapi";
 import createHono from "../../../lib/honoBase";
 
 const app = createHono()
 
-app.get('/career', (c) => {
-    return c.env.DB.prepare("SELECT name FROM career")
-        .all()
-        .then((data) => c.json(data, 200))
-        .catch((error) => c.json({ message: error.message }, 500));
-});
+app.openapi(
+    createRoute({
+        path: "/career",
+        method: "get",
+        tags: ["information"],
+        responses: {
+            200: {
+                description: "Carreras",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            career: z.array(z.object({
+                                name: z.string()
+                            }))
+                        })
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string()
+                        })
+                    }
+                }
+            }
+        }
+    }), (c) => {
+        return c.env.DB.prepare("SELECT name FROM career")
+            .all<{ name: string }>()
+            .then((data) => c.json({ career: data.results }, 200))
+            .catch((error) => c.json({ message: error.message }, 500));
+    });
 
 app.get('/school', (c) => {
     return c.env.DB.prepare("SELECT DISTINCT school FROM course")
@@ -23,9 +53,39 @@ app.get('/category', (c) => {
         .catch((error) => c.json({ message: error.message }, 500));
 });
 
-app.get('/area', (c) => {
+app.openapi(createRoute({
+    path: "/area",
+    method: "get",
+    tags: ["information"],
+    responses: {
+        200: {
+            description: "Areas",
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        areas: z.array(z.object({
+                            area: z.string()
+                        }))
+                    })
+                },
+            },
+        },
+        500: {
+            description: "Error interno",
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        message: z.string()
+                    })
+                }
+            }
+        }
+    }
+}), (c) => {
     return c.env.DB.prepare("SELECT DISTINCT area FROM course")
-        .all()
+        .all<{
+            area: string;
+        }>()
         .then((data) => c.json({ areas: data.results }, 200))
         .catch((error) => c.json({ message: error.message }, 500));
 });
