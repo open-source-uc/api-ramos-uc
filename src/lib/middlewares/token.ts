@@ -8,8 +8,11 @@ import { PERMISSIONS } from "../enums";
 export interface TokenPayload extends JWTPayload {
     email_hash: string;
     token_version: string;
-    permissions: PERMISSIONS[];
-}
+    permissions: {
+        permission_id: PERMISSIONS;
+    }[]
+};
+
 
 export const verifyTokenMiddleware = createMiddleware<{ Bindings: Bindings }>(async (c, next) => {
     try {

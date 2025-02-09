@@ -21,7 +21,7 @@ app.openapi(
                 content: {
                     'application/json': {
                         schema: z.object({
-                            course_sigle: z.string(),
+                            course_id: z.number(),
                             year: z.number(),
                             section_number: z.number().min(1).max(100),
                             liked: z.boolean(),
@@ -67,7 +67,7 @@ app.openapi(
     }),
     async (c) => {
         try {
-            const { year, course_sigle, section_number, liked, comment, estimated_credits } = c.req.valid("json")
+            const { year, course_id, section_number, liked, comment, estimated_credits } = c.req.valid("json")
             const currentYear = new Date().getFullYear()
             if (!(currentYear - 12 <= year))
                 return c.json({
@@ -78,7 +78,7 @@ app.openapi(
             const payload: TokenPayload = c.get("jwtPayload")
             await c.env.DB.prepare(`
                 INSERT INTO review(
-                course_sigle, 
+                course_id, 
                 email_hash, 
                 year,
                 section_number, 
@@ -98,7 +98,7 @@ app.openapi(
                 )
                 `)
                 .bind(
-                    course_sigle,
+                    course_id,
                     payload.email_hash,
                     year,
                     section_number,
@@ -114,7 +114,6 @@ app.openapi(
             }, 201)
 
         } catch (error) {
-            console.log(error)
             return c.json(
                 {
                     message: "Server Error",
@@ -141,7 +140,7 @@ app.openapi(
                 content: {
                     'application/json': {
                         schema: z.object({
-                            course_sigle: z.string(),
+                            course_id: z.number(),
                             year: z.number(),
                             section_number: z.number().min(1).max(100),
                             liked: z.boolean(),
@@ -196,7 +195,7 @@ app.openapi(
         }
     }), async (c) => {
         try {
-            const { course_sigle, year, section_number, liked, comment, estimated_credits } =
+            const { course_id, year, section_number, liked, comment, estimated_credits } =
                 c.req.valid("json");
 
             const currentYear = new Date().getFullYear()
@@ -216,7 +215,7 @@ app.openapi(
                   liked = ?,
                   comment = ?,
                   estimated_credits = ?
-              WHERE email_hash = ? AND course_sigle = ?
+              WHERE email_hash = ? AND course_id = ?
               `
             )
                 .bind(
@@ -226,7 +225,7 @@ app.openapi(
                     comment,
                     estimated_credits,
                     payload.email_hash,
-                    course_sigle
+                    course_id
                 )
                 .run();
 
@@ -263,7 +262,7 @@ app.openapi(
                 content: {
                     'application/json': {
                         schema: z.object({
-                            course_sigle: z.string(),
+                            course_id: z.number(),
                         }),
                     },
                 },
@@ -304,14 +303,14 @@ app.openapi(
     }),
     async (c) => {
         try {
-            const { course_sigle } = c.req.valid("json");
+            const { course_id } = c.req.valid("json");
             const payload: TokenPayload = c.get("jwtPayload")
 
             const result = await c.env.DB.prepare(`
                 DELETE FROM review
-                WHERE email_hash = ? AND course_sigle = ?
+                WHERE email_hash = ? AND course_id = ?
             `)
-                .bind(payload?.email_hash, course_sigle)
+                .bind(payload?.email_hash, course_id)
                 .run();
 
             if (result.meta.changes === 0) {

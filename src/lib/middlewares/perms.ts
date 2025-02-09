@@ -9,9 +9,16 @@ export const verifyPermisionMiddleware = (permission: PERMISSIONS) => {
         try {
             const payload: TokenPayload = c.get("jwtPayload")
 
-            if (!payload.permissions.includes(permission))
+            let hasAutorization = false
+            for (const perm of payload.permissions) {
+                if (perm.permission_id === permission.valueOf()) {
+                    hasAutorization = true
+                    break
+                }
+            }
+            if (!hasAutorization)
                 return c.json({
-                    message: "Invalid permission " + permission.valueOf()
+                    message: "No autorizado, falta permiso: " + permission.valueOf()
                 }, 403)
 
         } catch {

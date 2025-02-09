@@ -1,68 +1,99 @@
--- Tabla: career
+-- Tabla: career (con ID numérico)
 CREATE TABLE career (
-    name VARCHAR(255) PRIMARY KEY
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
 );
 
--- Tabla: permission
+-- Tabla: permission (con ID numérico)
 CREATE TABLE permission (
-    name VARCHAR(100) PRIMARY KEY
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
 );
 
 -- Tabla: useraccount
 CREATE TABLE useraccount (
     email_hash TEXT PRIMARY KEY,
-    password VARCHAR(1024),
-    nickname VARCHAR(100) NOT NULL UNIQUE,
+    password TEXT,
+    nickname TEXT NOT NULL UNIQUE,
     admission_year INTEGER NOT NULL,  
-    career_name VARCHAR(255) NOT NULL,
+    career_id INTEGER NOT NULL,
     token_version TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (career_name) REFERENCES career(name)
+    FOREIGN KEY (career_id) REFERENCES career(id)
 );
 
 -- Tabla: userpermission (tabla de relación entre usuarios y permisos)
 CREATE TABLE userpermission (
     email_hash TEXT,
-    permission_name VARCHAR(100),
-    PRIMARY KEY (email_hash, permission_name),
+    permission_id INTEGER,
+    PRIMARY KEY (email_hash, permission_id),
     FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash),
-    FOREIGN KEY (permission_name) REFERENCES permission(name)
+    FOREIGN KEY (permission_id) REFERENCES permission(id)
 );
 
--- Tabla: course (se mantiene sin cambios)
+-- Tabla: school (con ID numérico)
+CREATE TABLE school (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+-- Tabla: area (con ID numérico)
+CREATE TABLE area (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+-- Tabla: category (con ID numérico)
+CREATE TABLE category (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+-- Tabla: course (modificada para usar un ID numérico único)
 CREATE TABLE course (
-    sigle VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    credits INTEGER NOT NULL,
-    school VARCHAR(100) CHECK (school <> ''),
-    area VARCHAR(100) CHECK (area <> ''),
-    category VARCHAR(100) CHECK (category <> '')
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- ID numérico autoincremental
+    sigle TEXT NOT NULL UNIQUE,            -- Sigla del curso
+    name TEXT NOT NULL,                    -- Nombre del curso
+    credits INTEGER NOT NULL,              -- Créditos del curso
+    school_id INTEGER NOT NULL,            -- Referencia a la escuela
+    area_id INTEGER NOT NULL,              -- Referencia al área
+    category_id INTEGER NOT NULL,          -- Referencia a la categoría
+    UNIQUE (id),                           -- Asegura que el ID es único
+    FOREIGN KEY (school_id) REFERENCES school(id),
+    FOREIGN KEY (area_id) REFERENCES area(id),
+    FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
-
--- Tabla: review
+-- Tabla: review (modificada para hacer referencia al ID del curso)
 CREATE TABLE review (
-    course_sigle VARCHAR(50),
+    course_id INTEGER,                     -- Referencia al ID del curso
     email_hash TEXT,
     year INTEGER,
     section_number INTEGER,
     liked BOOLEAN,
     comment TEXT,
     estimated_credits INTEGER,
-    status VARCHAR(20) NOT NULL,
+    status TEXT NOT NULL,
     date TEXT DEFAULT (datetime('now')),
-    PRIMARY KEY (course_sigle, email_hash),
-    CONSTRAINT check_status CHECK (status IN ('visible', 'hidden')),
-    FOREIGN KEY (course_sigle) REFERENCES course(sigle),
+    PRIMARY KEY (course_id, email_hash),    -- Modificado para usar course_id
+    CHECK (status IN ('visible', 'hidden')),
+    FOREIGN KEY (course_id) REFERENCES course(id),  -- Relación con course por ID
     FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash)
 );
 
+-- Tabla: course_reviews (modificada para usar ID numérico único)
 CREATE TABLE course_reviews (
-    sigle TEXT PRIMARY KEY,
-    name TEXT,
-    credits INTEGER NOT NULL,
-    school VARCHAR(100) CHECK (school <> ''),
-    area VARCHAR(100) CHECK (area <> ''),
-    category VARCHAR(100) CHECK (category <> ''),
-    promedio REAL,
-    promedio_creditos_est REAL
+    course_id INTEGER,  -- ID numérico autoincremental
+    sigle TEXT NOT NULL,                   -- Sigla del curso
+    name TEXT,                             -- Nombre del curso
+    credits INTEGER NOT NULL,              -- Créditos del curso
+    school_id INTEGER NOT NULL,            -- Referencia a la escuela
+    area_id INTEGER NOT NULL,              -- Referencia al área
+    category_id INTEGER NOT NULL,          -- Referencia a la categoría
+    promedio REAL,                         -- Promedio de las reseñas
+    promedio_creditos_est REAL,            -- Promedio de créditos estimados
+    FOREIGN KEY (school_id) REFERENCES school(id),
+    FOREIGN KEY (area_id) REFERENCES area(id),
+    FOREIGN KEY (category_id) REFERENCES category(id),
+    FOREIGN KEY (course_id) REFERENCES course(id),
+    PRIMARY KEY (course_id)                       
 );

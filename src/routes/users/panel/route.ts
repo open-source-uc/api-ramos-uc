@@ -31,7 +31,7 @@ app.openapi(
                                 .object({
                                     nickname: z.string(),
                                     admission_year: z.number(),
-                                    career_name: z.string(),
+                                    career_id: z.number(),
                                 })
                                 .nullable()
                                 .openapi("PerfilUsuarioSchema"),
@@ -62,7 +62,7 @@ app.openapi(
                 SELECT 
                     nickname,
                     admission_year,
-                    career_name
+                    career_id
                 FROM useraccount
                 WHERE email_hash = ?
                 `
@@ -71,7 +71,7 @@ app.openapi(
                 .first<{
                     nickname: string;
                     admission_year: number;
-                    career_name: string;
+                    career_id: number;
                 }>();
 
             return c.json({ user: result }, 200);
@@ -99,7 +99,7 @@ app.openapi(
                         schema: z.object({
                             nickname: z.string(),
                             admission_year: z.number(),
-                            career_name: z.string(),
+                            career_id: z.number(),
                         }).openapi("ActualizarPerfilUsuarioSchema"),
                     },
                 },
@@ -142,7 +142,7 @@ app.openapi(
         try {
 
             const payload: TokenPayload = c.get("jwtPayload")
-            const { nickname, admission_year, career_name } = c.req.valid("json")
+            const { nickname, admission_year, career_id } = c.req.valid("json")
             const currentYear = new Date().getFullYear()
 
             if (!(currentYear - 12 <= admission_year))
@@ -155,10 +155,10 @@ app.openapi(
                 SET
                     nickname = ?,
                     admission_year = ?,
-                    career_name = ?
+                    career_id = ?
                 WHERE email_hash = ?`
             )
-                .bind(nickname, admission_year, career_name, payload.email_hash)
+                .bind(nickname, admission_year, career_id, payload.email_hash)
                 .first();
 
             return c.json(
@@ -244,7 +244,6 @@ app.openapi(
                     "application/json": {
                         schema: z.object({
                             message: z.string(),
-                            error: z.boolean(),
                         }).openapi("ErrorResponse"),
                     },
                 },
@@ -290,8 +289,8 @@ app.openapi(
             if (!user2)
                 return c.json({ message: "Error muy extraño", error: true }, 500);
 
-            const permissions = await c.env.DB.prepare("SELECT permission_name FROM userpermission WHERE email_hash = ?")
-                .bind(payload.email_hash).all<{ permission_name: string }>();
+            const permissions = await c.env.DB.prepare("SELECT permission_id FROM userpermission WHERE email_hash = ?")
+                .bind(payload.email_hash).all<{ permission_id: string }>();
 
             const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
@@ -306,7 +305,8 @@ app.openapi(
 
             return c.json({ message: "Contraseña actualizada correctamente", token }, 200);
         } catch (error) {
-            return c.json({ message: "Server Error", error: true }, 500);
+            console.log(error)
+            return c.json({ message: "Server Error" }, 500);
         }
     }
 );

@@ -65,7 +65,7 @@ app.openapi(
     }),
     async (c) => {
         try {
-            const { email, password, nickname, admission_year, carrer_name } = c.req.valid('json');
+            const { email, password, nickname, admission_year, career_id } = c.req.valid('json');
 
             const email_hash = await sha256(email);
 
@@ -85,12 +85,19 @@ app.openapi(
             const hashedPassword = await bcrypt.hash(password, 10);
 
             const resultUser = await c.env.DB.prepare(
-                "INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)"
+                "INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_id) VALUES (?,?,?,?,?) returning token_version"
             )
-                .bind(email_hash, hashedPassword, nickname, admission_year, carrer_name)
-                .first();
+                .bind(email_hash, hashedPassword, nickname, admission_year, career_id)
+                .first<{
+                    token_version: string,
+                }>();
+            if (!resultUser) {
+                return c.json({
+                    message: "Error interno",
+                }, 500)
+            }
 
-            const resultPermission = await c.env.DB.prepare("INSERT INTO userpermission(email_hash, permission_name) VALUES (?,?) return permission_name")
+            const resultPermission = await c.env.DB.prepare("INSERT INTO userpermission(email_hash, permission_id) VALUES (?,?) returning permission_id")
                 .bind(email_hash, PERMISSIONS.CREATE_EDIT_OWN_REVIEW).all<{
                     permission_name: string,
                 }>();
@@ -99,7 +106,7 @@ app.openapi(
             const token = await sign(
                 {
                     email_hash: email_hash,
-                    token_version: resultUser?.token_version,
+                    token_version: resultUser.token_version,
                     permissions: resultPermission.results
                 },
                 SECRET_GLOBAL_KEY,
@@ -195,8 +202,8 @@ app.openapi(
             if (!isValidPassword)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
-            const permissions = await c.env.DB.prepare("SELECT permission_name FROM userpermission WHERE email_hash = ?")
-                .bind(email_hash).all<{ permission_name: string }>();
+            const permissions = await c.env.DB.prepare("SELECT permission_id FROM userpermission WHERE email_hash = ?")
+                .bind(email_hash).all<{ permission_id: number }>();
 
             const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(

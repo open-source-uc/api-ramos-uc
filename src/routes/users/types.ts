@@ -51,7 +51,7 @@ export const UserAccountCreateSchema = z.object({
         }),
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
     admission_year: z.number().int(),
-    carrer_name: z.string(),
+    career_id: z.number(),
 }).openapi("UserAccountCreateSchema");
 
 export const UserAccountLoginSchema = z.object({

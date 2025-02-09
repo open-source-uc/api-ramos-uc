@@ -11,60 +11,13 @@ app.openapi(
         method: "get",
         request: {
             query: z.object({
-                page: z.string().transform((val) => parseInt(val, 10))
+                start_id: z.string().transform((val) => parseInt(val, 10))
+                    .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" }).optional(),
+                school_id: z.string().transform((val) => parseInt(val, 10))
                     .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" })
                     .refine((val) => val >= 0 && val <= 1000, {
-                        message: 'El parámetro "page" debe estar entre 0 y 1000',
+                        message: 'El parámetro "school_id" debe estar entre 0 y 1000',
                     }).optional(),
-                school: z.enum([
-                    "Actuación",
-                    "Agronomía Y Sistemas Naturales",
-                    "Antropología",
-                    "Arquitectura",
-                    "Arte",
-                    "Escuela De Gobierno",
-                    "Estudios Urbanos",
-                    "Economía Y Administración",
-                    "Escuela De Medicina",
-                    "Ingeniería",
-                    "CARA",
-                    "Astrofísica",
-                    "Matemáticas",
-                    "Bachillerato Inicia",
-                    "Ciencia Política",
-                    "Ciencias Biológicas",
-                    "Educación",
-                    "Escuela Ciencias De La Salud",
-                    "Escuela De Enfermería",
-                    "Estética",
-                    "Historia",
-                    "Ingeniería Biológica Y Médica",
-                    "Letras",
-                    "Música",
-                    "Química",
-                    "Teología",
-                    "Actividades Universitarias",
-                    "College",
-                    "Comunicaciones",
-                    "Construcción Civil",
-                    "Sociología",
-                    "Trabajo Social",
-                    "Derecho",
-                    "Diseño",
-                    "Escuela De Odontología",
-                    "Cursos Deportivos",
-                    "Ing Matemática Y Computacional",
-                    "Psicología",
-                    "Instituto De Éticas Aplicadas",
-                    "Geografía",
-                    "Filosofía",
-                    "Física",
-                    "Medicina Veterinaria",
-                    "Cursos y Test de Inglés",
-                    "Villarrica",
-                    "Escuela De Graduados",
-                    "Desarrollo Sustentable"
-                ]).optional()
             }),
         },
         responses: {
@@ -74,11 +27,12 @@ app.openapi(
                     "application/json": {
                         schema: z.object({
                             courses: z.array(z.object({
+                                course_id: z.number(),
                                 sigle: z.string(),
                                 name: z.string(),
-                                category: z.string(),
-                                school: z.string(),
-                                area: z.string(),
+                                category_id: z.number(),
+                                school_id: z.number(),
+                                area_id: z.number(),
                                 credits: z.number(),
                                 promedio: z.number(),
                                 promedio_creditos_est: z.number()
@@ -100,36 +54,41 @@ app.openapi(
         }
     }),
     async (c) => {
-        const { page, school } = c.req.valid("query")
+        const { start_id, school_id } = c.req.valid("query")
 
         const bindings = []
 
-        if (school)
-            bindings.push(school)
-        bindings.push(page ?? 0)
+        if (school_id)
+            bindings.push(school_id)
+        if (start_id)
+            bindings.push(start_id)
 
         const query = c.env.DB.prepare(`
             SELECT 
+                course_id,
                 sigle,
                 name,
-                category,
-                school,
-                area,
+                category_id,
+                school_id,
+                area_id,
                 credits,
                 promedio,
                 promedio_creditos_est
-            FROM course_reviews 
-            ${school ? 'WHERE school = ?' : ''}
-            ORDER BY promedio DESC
-            LIMIT 50 OFFSET 50 * (?)
+            FROM course_reviews
+            ${(school_id !== undefined || start_id !== undefined)
+                ? `WHERE ${school_id ? (start_id ? 'school_id = ? AND course_id > ?' : 'school_id = ?') : 'course_id > ?'}`
+                : ''}
+            ORDER BY promedio DESC, course_id ASC
+            LIMIT 50
             `)
 
         const result = await query.bind(...bindings).all<{
+            course_id: number
             sigle: string;
             name: string;
-            category: string;
-            school: string;
-            area: string;
+            category_id: number;
+            school_id: number;
+            area_id: number;
             credits: number;
             promedio: number;
             promedio_creditos_est: number;
@@ -144,22 +103,13 @@ app.openapi(createRoute({
     method: "get",
     request: {
         query: z.object({
-            page: z.string().transform((val) => parseInt(val, 10))
+            start_id: z.string().transform((val) => parseInt(val, 10))
+                .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" }).optional(),
+            area_id: z.string().transform((val) => parseInt(val, 10))
                 .refine((val) => !isNaN(val), { message: "Valor debe ser un numero valido" })
-                .refine((val) => val >= 0 && val <= 1000, {
-                    message: 'El parámetro "page" debe estar entre 0 y 1000',
+                .refine((val) => val > 0 && val <= 1000, {
+                    message: 'El parámetro "area_id" debe estar entre 1 y 1000',
                 }).optional(),
-            area: z.enum([
-                "Artes",
-                "Ecolog Integra y Sustentabilid",
-                "Pensamiento Matematico",
-                "Ciencias Sociales",
-                "Salud y Bienestar",
-                "Ciencia y Tecnologia",
-                "Humanidades",
-                "Formacion Filosofica",
-                "Formacion Teologica"
-            ]).optional()
         })
     },
     responses: {
@@ -169,11 +119,12 @@ app.openapi(createRoute({
                 "application/json": {
                     schema: z.object({
                         courses: z.array(z.object({
+                            course_id: z.number(),
                             sigle: z.string(),
                             name: z.string(),
-                            category: z.string(),
-                            school: z.string(),
-                            area: z.string(),
+                            category_id: z.number(),
+                            school_id: z.number(),
+                            area_id: z.number(),
                             credits: z.number(),
                             promedio: z.number(),
                             promedio_creditos_est: z.number()
@@ -195,40 +146,43 @@ app.openapi(createRoute({
     }
 }),
     async (c) => {
-        const { page, area } = c.req.valid("query")
+        const { start_id, area_id } = c.req.valid("query")
 
         const bindings = []
 
-        if (area)
-            bindings.push(area)
-
-        bindings.push(page ?? 0)
+        if (area_id)
+            bindings.push(area_id)
+        if (start_id)
+            bindings.push(start_id)
 
 
         const query = c.env.DB.prepare(`
         SELECT 
+        course_id,
         sigle,
         name,
-        category,
-        school,
-        area,
+        category_id,
+        school_id,
+        area_id,
         credits,
         promedio,
         promedio_creditos_est
         FROM course_reviews
         WHERE
-            (area > 'N/A' OR area < 'N/A')
-            ${area !== undefined ? 'AND area = ?' : ''}
-        ORDER BY promedio DESC
-        LIMIT 50 OFFSET 50 * (?)
+            ${(area_id !== undefined || start_id !== undefined)
+                ? `${area_id ? (start_id ? 'area_id = ? AND course_id > ?' : 'area_id = ?') : 'course_id > ?'}`
+                : 'area_id > 0'}
+        ORDER BY promedio DESC, course_id ASC
+        LIMIT 50
         `)
 
         const result = await query.bind(...bindings).all<{
+            course_id: number
             sigle: string;
             name: string;
-            category: string;
-            school: string;
-            area: string;
+            category_id: number;
+            school_id: number;
+            area_id: number;
             credits: number;
             promedio: number;
             promedio_creditos_est: number;

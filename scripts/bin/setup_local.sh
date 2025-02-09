@@ -9,6 +9,11 @@ echo "Triggers creados"
 npx wrangler d1 execute ramos-uc --local --file=../sql/index.sql
 echo "Index creados"
 echo Insertando cursos
+npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/area.sql
+npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/category.sql
+npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/school.sql
+
+
 npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-1.sql
 npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-2.sql
 npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-3.sql
@@ -28,4 +33,3 @@ npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-16.sql
 npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-17.sql
 npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-18.sql
 npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-19.sql
-npx wrangler d1 execute ramos-uc --local --file=../sql/2025-1/2025-20.sql
