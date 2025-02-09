@@ -6,6 +6,7 @@ import { sign } from "hono/jwt";
 import { sha256 } from "../../../lib/hash";
 import { UserAccountCreateSchema, UserAccountLoginSchema } from "../../users/types";
 import { createRoute, z } from "@hono/zod-openapi";
+import { PERMISSIONS } from "../../../lib/enums";
 
 const app = createHono()
 
@@ -14,6 +15,11 @@ app.openapi(
         method: 'post',
         path: '/register',
         tags: ['auth'],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         request: {
             body: {
                 content: {
@@ -78,17 +84,23 @@ app.openapi(
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const result = await c.env.DB.prepare(
+            const resultUser = await c.env.DB.prepare(
                 "INSERT INTO useraccount(email_hash, password, nickname, admission_year, career_name) VALUES (?,?,?,?,?)"
             )
                 .bind(email_hash, hashedPassword, nickname, admission_year, carrer_name)
                 .first();
 
+            const resultPermission = await c.env.DB.prepare("INSERT INTO userpermission(email_hash, permission_name) VALUES (?,?) return permission_name")
+                .bind(email_hash, PERMISSIONS.CREATE_EDIT_OWN_REVIEW).all<{
+                    permission_name: string,
+                }>();
+
             const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     email_hash: email_hash,
-                    token_version: result?.token_version,
+                    token_version: resultUser?.token_version,
+                    permissions: resultPermission.results
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"
@@ -183,11 +195,15 @@ app.openapi(
             if (!isValidPassword)
                 return c.json({ message: "La contraseña o el correo es incorrecto" }, 401);
 
+            const permissions = await c.env.DB.prepare("SELECT permission_name FROM userpermission WHERE email_hash = ?")
+                .bind(email_hash).all<{ permission_name: string }>();
+
             const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     email_hash: email_hash,
                     token_version: found?.token_version,
+                    permissions: permissions.results
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"

@@ -1,7 +1,9 @@
 -- Inserción en bloque para la tabla "permission"
 INSERT INTO permission (name) VALUES
   ('CREATE_EDIT_OWN_REVIEW'),
-  ('SUDO');
+  ('CREATE_USER'),
+  ('UPDATE_QUOTA'),
+  ('ADMIN');
 
 -- Inserción en bloque para la tabla "career"
 INSERT INTO career (name) VALUES

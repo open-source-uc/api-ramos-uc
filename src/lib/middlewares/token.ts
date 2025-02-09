@@ -3,10 +3,12 @@ import { verify } from "hono/jwt";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload } from "hono/utils/jwt/types";
 import { Bindings } from "../honoBase";
+import { PERMISSIONS } from "../enums";
 
 export interface TokenPayload extends JWTPayload {
     email_hash: string;
     token_version: string;
+    permissions: PERMISSIONS[];
 }
 
 export const verifyTokenMiddleware = createMiddleware<{ Bindings: Bindings }>(async (c, next) => {
@@ -24,7 +26,7 @@ export const verifyTokenMiddleware = createMiddleware<{ Bindings: Bindings }>(as
         const payload: TokenPayload = (await verify(osuctoken, SECRET_GLOBAL_KEY, "HS256")) as unknown as TokenPayload
 
         const user = await c.env.DB.prepare(`
-            SELECT * FROM useraccount WHERE email_hash = ?    
+            SELECT token_version FROM useraccount WHERE email_hash = ?    
         `).bind(payload.email_hash).first()
 
         if (!user)

@@ -290,11 +290,15 @@ app.openapi(
             if (!user2)
                 return c.json({ message: "Error muy extraño", error: true }, 500);
 
+            const permissions = await c.env.DB.prepare("SELECT permission_name FROM userpermission WHERE email_hash = ?")
+                .bind(payload.email_hash).all<{ permission_name: string }>();
+
             const { SECRET_GLOBAL_KEY } = env(c);
             const token = await sign(
                 {
                     email_hash: payload.email_hash,
                     token_version: user2?.token_version,
+                    permissions: permissions
                 },
                 SECRET_GLOBAL_KEY,
                 "HS256"

@@ -16,7 +16,6 @@ app.openapi(
                     .refine((val) => val >= 0 && val <= 1000, {
                         message: 'El parámetro "page" debe estar entre 0 y 1000',
                     }).optional(),
-                sigle: z.string().optional(),
                 school: z.enum([
                     "Actuación",
                     "Agronomía Y Sistemas Naturales",
@@ -101,12 +100,10 @@ app.openapi(
         }
     }),
     async (c) => {
-        const { page, sigle, school } = c.req.valid("query")
+        const { page, school } = c.req.valid("query")
 
         const bindings = []
 
-        if (sigle)
-            bindings.push(sigle)
         if (school)
             bindings.push(school)
         bindings.push(page ?? 0)
@@ -122,10 +119,7 @@ app.openapi(
                 promedio,
                 promedio_creditos_est
             FROM course_reviews 
-            ${sigle
-                ? (school ? 'WHERE sigle = ? AND school = ?' : 'WHERE sigle = ?')
-                : (school ? 'WHERE school = ?' : '')
-            }
+            ${school ? 'WHERE school = ?' : ''}
             ORDER BY promedio DESC
             LIMIT 50 OFFSET 50 * (?)
             `)
@@ -141,7 +135,7 @@ app.openapi(
             promedio_creditos_est: number;
         }>()
 
-        return c.json({ courses: result.results }, 200)
+        return c.json({ courses: result.results, meta: result.meta }, 200)
     }
 )
 
@@ -155,7 +149,6 @@ app.openapi(createRoute({
                 .refine((val) => val >= 0 && val <= 1000, {
                     message: 'El parámetro "page" debe estar entre 0 y 1000',
                 }).optional(),
-            sigle: z.string().optional(),
             area: z.enum([
                 "Artes",
                 "Ecolog Integra y Sustentabilid",
@@ -202,12 +195,10 @@ app.openapi(createRoute({
     }
 }),
     async (c) => {
-        const { page, sigle, area } = c.req.valid("query")
+        const { page, area } = c.req.valid("query")
 
         const bindings = []
 
-        if (sigle)
-            bindings.push(sigle)
         if (area)
             bindings.push(area)
 
@@ -226,8 +217,7 @@ app.openapi(createRoute({
         promedio_creditos_est
         FROM course_reviews
         WHERE
-            area IS NOT NULL
-            ${sigle !== undefined ? 'AND sigle = ?' : ''} 
+            (area > 'N/A' OR area < 'N/A')
             ${area !== undefined ? 'AND area = ?' : ''}
         ORDER BY promedio DESC
         LIMIT 50 OFFSET 50 * (?)
@@ -244,7 +234,7 @@ app.openapi(createRoute({
             promedio_creditos_est: number;
         }>()
 
-        return c.json({ courses: result.results }, 200)
+        return c.json({ courses: result.results, meta: result.meta }, 200)
     }
 )
 

@@ -1,26 +1,19 @@
 import { createMiddleware } from "hono/factory";
 import { Bindings } from "../honoBase";
 import { TokenPayload } from "./token";
+import { PERMISSIONS } from "../enums";
 
-export enum PERMISSIONS {
-    SUDO = "SUDO",
-    CREATE_EDIT_OWN_REVIEW = "CREATE_EDIT_OWN_REVIEW"
-}
-
-export const verifyTokenOnePermision = (permission: PERMISSIONS) => {
-
+export const verifyPermisionMiddleware = (permission: PERMISSIONS) => {
 
     return createMiddleware<{ Bindings: Bindings }>(async (c, next) => {
         try {
             const payload: TokenPayload = c.get("jwtPayload")
-            const result = await c.env.DB.prepare(`
-            SELECT * FROM userpermission WHERE email_hash = ? AND permission_name = ? LIMIT 1
-            `).bind(payload.email_hash, permission).first()
 
-            if (!result)
+            if (!payload.permissions.includes(permission))
                 return c.json({
-                    message: `No tienes el permiso de ${permission}`
-                }, 401)
+                    message: "Invalid permission " + permission.valueOf()
+                }, 403)
+
         } catch {
             return c.json({
                 message: "Server error"
