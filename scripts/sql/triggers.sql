@@ -111,3 +111,21 @@ BEGIN
         )
     WHERE course_id = OLD.course_id;
 END;
+
+
+-- Trigger que se activa después de cada inserción o eliminación de permisos para un usuario
+CREATE TRIGGER update_token_version_after_permission_change
+AFTER INSERT ON userpermission
+BEGIN
+    UPDATE useraccount
+    SET token_version = datetime('now')  -- Actualiza la versión del token a la fecha y hora actual
+    WHERE email_hash = NEW.email_hash;  -- Se aplica solo al usuario que acaba de tener un cambio de permisos
+END;
+
+CREATE TRIGGER update_token_version_after_permission_removal
+AFTER DELETE ON userpermission
+BEGIN
+    UPDATE useraccount
+    SET token_version = datetime('now')  -- Actualiza la versión del token a la fecha y hora actual
+    WHERE email_hash = OLD.email_hash;  -- Se aplica solo al usuario que acaba de perder permisos
+END;
