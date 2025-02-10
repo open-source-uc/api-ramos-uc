@@ -269,6 +269,10 @@ app.openapi(
 
             const newHashedPassword = await bcrypt.hash(newPassword, 10);
 
+            /*
+            Cuidado al modificar esto pues se actualiza el token el token version y no se hace en un trigger pues pasaria al cambiar el nickname, carrera, etc,
+            por lo que debe estar aqui para que se actualize solo cuando se cambie la contraseña
+            */
             await c.env.DB.prepare(
                 `UPDATE useraccount
            SET 
