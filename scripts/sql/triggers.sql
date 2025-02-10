@@ -26,8 +26,8 @@ BEGIN
         NEW.school_id, 
         NEW.area_id, 
         NEW.credits, 
-        -1,  -- valor predeterminado para promedio
-        -1   -- valor predeterminado para promedio_creditos_est
+        -1 * NEW.id,  -- valor predeterminado para promedio
+        -1 * NEW.id   -- valor predeterminado para promedio_creditos_est
     );
 END;
 
@@ -43,7 +43,7 @@ BEGIN
         promedio = (
             SELECT 
                 CASE 
-                    WHEN COUNT(r.course_id) = 0 THEN -1
+                    WHEN COUNT(r.course_id) = 0 THEN -1 * NEW.course_id
                     ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
                 END
             FROM review r
@@ -51,7 +51,7 @@ BEGIN
         ),
         promedio_creditos_est = (
             SELECT 
-                COALESCE(AVG(r.estimated_credits), -1)
+                COALESCE(AVG(r.estimated_credits), -1 * NEW.course_id)
             FROM review r
             WHERE r.course_id = NEW.course_id
         )
@@ -70,7 +70,7 @@ BEGIN
         promedio = (
             SELECT 
                 CASE 
-                    WHEN COUNT(r.course_id) = 0 THEN -1
+                    WHEN COUNT(r.course_id) = 0 THEN -1 * NEW.course_id
                     ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
                 END
             FROM review r
@@ -78,7 +78,7 @@ BEGIN
         ),
         promedio_creditos_est = (
             SELECT 
-                COALESCE(AVG(r.estimated_credits), -1)
+                COALESCE(AVG(r.estimated_credits), -1 * NEW.course_id)
             FROM review r
             WHERE r.course_id = NEW.course_id
         )
@@ -97,7 +97,7 @@ BEGIN
         promedio = (
             SELECT 
                 CASE 
-                    WHEN COUNT(r.course_id) = 0 THEN -1
+                    WHEN COUNT(r.course_id) = 0 THEN -1 * OLD.course_id
                     ELSE AVG(CASE WHEN r.liked THEN 1 ELSE 0 END) 
                 END
             FROM review r
@@ -105,7 +105,7 @@ BEGIN
         ),
         promedio_creditos_est = (
             SELECT 
-                COALESCE(AVG(r.estimated_credits), -1)
+                COALESCE(AVG(r.estimated_credits), -1 * OLD.course_id)
             FROM review r
             WHERE r.course_id = OLD.course_id
         )
