@@ -75,9 +75,10 @@ app.openapi(
                 promedio,
                 promedio_creditos_est
             FROM course_reviews
+            WHERE promedio >= 0
             ${(school_id !== undefined || start_promedio !== undefined)
-                ? `WHERE ${school_id ? (start_promedio ? 'school_id = ? AND ? < promedio' : 'school_id = ?') : '? < promedio'}`
-                : 'WHERE promedio >= 0'}
+                ? `AND ${school_id ? (start_promedio ? 'school_id = ? AND ? < promedio' : 'school_id = ?') : '? < promedio'}`
+                : ''}
             ORDER BY promedio DESC
             LIMIT 50
             `)
@@ -168,10 +169,10 @@ app.openapi(createRoute({
         promedio,
         promedio_creditos_est
         FROM course_reviews 
-        WHERE
-            ${(area_id !== undefined || start_promedio !== undefined)
-                ? `${area_id ? (start_promedio ? 'area_id = ? AND ? < promedio' : 'area_id = ?') : '? < promedio'}`
-                : 'area_id > 0 AND promedio >= 0'}
+        WHERE promedio >= 0
+        ${(area_id !== undefined || start_promedio !== undefined)
+                ? `AND ${area_id ? (start_promedio ? 'area_id = ? AND ? < promedio' : 'area_id = ?') : '? < promedio'}`
+                : 'AND area_id > 0'}
         ORDER BY promedio DESC
         LIMIT 50
         `)
