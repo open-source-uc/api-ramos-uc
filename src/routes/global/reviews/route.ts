@@ -9,6 +9,11 @@ app.openapi(createRoute({
     path: "/course",
     tags: ["reviews"],
     method: "get",
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     request: {
         query: z.object({
             review_id_start: z.string().transform((val) => parseInt(val, 10))
@@ -109,6 +114,11 @@ app.openapi(createRoute({
     path: "/course/{course_id}",
     method: "get",
     tags: ["reviews"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     request: {
         params: z.object({
             course_id: z.string()
@@ -222,6 +232,11 @@ app.openapi(createRoute({
     path: "/course/{course_id}/{nickname}",
     method: "get",
     tags: ["reviews"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     request: {
         params: z.object({
             course_id: z.string()
@@ -324,6 +339,11 @@ app.openapi(createRoute({
     path: "/user/{nickname}",
     method: "get",
     tags: ["reviews"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     request: {
         params: z.object({
             nickname: z.string()

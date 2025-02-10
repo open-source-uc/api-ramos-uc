@@ -10,6 +10,11 @@ app.openapi(
         path: "/",
         method: "get",
         tags: ["courses"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         request: {
             query: z.object({
                 start_promedio: z.string().transform((val) => parseFloat(val))
@@ -104,6 +109,11 @@ app.openapi(createRoute({
     path: "/ofg",
     method: "get",
     tags: ["courses"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     request: {
         query: z.object({
             start_promedio: z.string().transform((val) => parseFloat(val))
@@ -200,6 +210,11 @@ app.openapi(
         path: "/uninformed",
         method: "get",
         tags: ["courses"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         request: {
             query: z.object({
                 start_course_id: z.string().transform((val) => parseInt(val))
@@ -294,6 +309,11 @@ app.openapi(createRoute({
     path: "/uninformed/ofg",
     method: "get",
     tags: ["courses"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     request: {
         query: z.object({
             start_course_id: z.string().transform((val) => parseInt(val))
@@ -390,6 +410,11 @@ app.openapi(
         path: "/course_id/{course_id}",
         method: "get",
         tags: ["courses"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         request: {
             params: z.object({
                 course_id: z.string().transform((val) => parseInt(val, 10))
@@ -492,6 +517,11 @@ app.openapi(
                 sigle: z.string()
             })
         },
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         responses: {
             200: {
                 description: "Información del curso",

@@ -8,6 +8,11 @@ app.openapi(
         path: "/career",
         method: "get",
         tags: ["information"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         responses: {
             200: {
                 description: "Carreras",
@@ -44,6 +49,11 @@ app.openapi(createRoute({
     path: "/school",
     method: "get",
     tags: ["information"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     responses: {
         200: {
             description: "Escuelas",
@@ -83,6 +93,11 @@ app.openapi(createRoute({
     path: "/category",
     method: "get",
     tags: ["information"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     responses: {
         200: {
             description: "Categorias",
@@ -122,6 +137,11 @@ app.openapi(createRoute({
     path: "/area",
     method: "get",
     tags: ["information"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
     responses: {
         200: {
             description: "Areas",
