@@ -1,9 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import createHono from "../../lib/honoBase";
 
-const app = createHono()
-
-app.openapi(
+const app = createHono().openapi(
     createRoute({
         path: '/course',
         method: 'post',

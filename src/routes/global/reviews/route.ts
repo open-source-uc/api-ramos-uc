@@ -6,7 +6,7 @@ import { createRoute } from "@hono/zod-openapi";
 const app = createHono()
 
 app.openapi(createRoute({
-    path: "/course",
+    path: "/",
     tags: ["reviews"],
     method: "get",
     security: [
