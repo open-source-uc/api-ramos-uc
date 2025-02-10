@@ -83,7 +83,7 @@ CREATE TABLE review (
 -- Tabla: course_reviews (modificada para usar ID numérico único)
 CREATE TABLE course_reviews (
     course_id INTEGER,  -- ID numérico autoincremental
-    sigle TEXT NOT NULL,                   -- Sigla del curso
+    sigle TEXT NOT NULL UNIQUE,                   -- Sigla del curso
     name TEXT,                             -- Nombre del curso
     credits INTEGER NOT NULL,              -- Créditos del curso
     school_id INTEGER NOT NULL,            -- Referencia a la escuela
