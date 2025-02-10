@@ -26,7 +26,7 @@ app.openAPIRegistry.registerComponent("securitySchemes", "osuctoken", {
 })
 app.use("/*", cors())
 
-// app.use("/auth/register", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.CREATE_USER))
+app.use("/auth/register", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.CREATE_USER))
 app.route('/auth', auth)
 
 app.use("/general/*", verifyTokenMiddleware)
