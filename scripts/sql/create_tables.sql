@@ -63,10 +63,10 @@ CREATE TABLE course (
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
--- Tabla: review (modificada para hacer referencia al ID del curso)
 CREATE TABLE review (
-    course_id INTEGER,                     -- Referencia al ID del curso
-    email_hash TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,      -- Columna id autoincremental
+    course_id INTEGER,                         -- Referencia al ID del curso
+    email_hash TEXT,                           -- Hash del email
     year INTEGER,
     section_number INTEGER,
     liked BOOLEAN,
@@ -74,10 +74,10 @@ CREATE TABLE review (
     estimated_credits INTEGER,
     status TEXT NOT NULL,
     date TEXT DEFAULT (datetime('now')),
-    PRIMARY KEY (course_id, email_hash),    -- Modificado para usar course_id
     CHECK (status IN ('visible', 'hidden')),
     FOREIGN KEY (course_id) REFERENCES course(id),  -- Relación con course por ID
-    FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash)
+    FOREIGN KEY (email_hash) REFERENCES useraccount(email_hash),
+    UNIQUE (course_id, email_hash)  -- Asegura que la combinación de course_id y email_hash sea única
 );
 
 -- Tabla: course_reviews (modificada para usar ID numérico único)

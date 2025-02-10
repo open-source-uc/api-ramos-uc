@@ -16,6 +16,10 @@ export const verifyPermisionMiddleware = (permission: PERMISSIONS) => {
                     break
                 }
             }
+
+            if (permission.valueOf() === PERMISSIONS.NULL.valueOf())
+                hasAutorization = true
+
             if (!hasAutorization)
                 return c.json({
                     message: "No autorizado, falta permiso: " + permission.valueOf()

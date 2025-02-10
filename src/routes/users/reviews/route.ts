@@ -9,7 +9,7 @@ app.openapi(
     createRoute({
         method: 'post',
         path: "/",
-        tags: ['reviews'],
+        tags: ['user reviews'],
         security: [
             {
                 osuctoken: []
@@ -128,7 +128,7 @@ app.openapi(
     createRoute({
         method: 'put',
         path: "/",
-        tags: ['reviews'],
+        tags: ["user reviews"],
         description: "Actualizar review con la id de usuario que esta en el token",
         security: [
             {
@@ -250,7 +250,7 @@ app.openapi(
     createRoute({
         method: 'delete',
         path: "/",
-        tags: ['reviews'],
+        tags: ["user reviews"],
         description: "Actualizar review con la id de usuario que esta en el token",
         security: [
             {
