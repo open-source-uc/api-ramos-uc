@@ -1,72 +1,194 @@
-// import { zValidator } from "@hono/zod-validator";
-// import { verifyTokenMiddleware } from "../../../../lib/middlewares/token";
-// import { PERMISSIONS, verifyTokenOnePermision } from "../../../../lib/middlewares/perms";
-// import { z } from "zod";
-// import createHono from "../../../../lib/honoBase";
-// import { HeaderSchema } from "../../../../lib/header";
+import { z } from "zod";
+import createHono from "../../../../lib/honoBase";
+import { createRoute } from "@hono/zod-openapi";
 
-// const app = createHono()
+const app = createHono()
 
-// app.post(
-//     "/permission",
-//     zValidator("json", z.object({
-//         email_hash: z.string(),
-//         permission_name: z.string()
-//     })),
-//     zValidator("header", HeaderSchema),
-//     verifyTokenMiddleware,
-//     verifyTokenOnePermision(PERMISSIONS.SUDO),
-//     async (c) => {
-//         const { email_hash, permission_name } = c.req.valid("json");
+app.openapi(createRoute({
+    path: "/{email_hash}",
+    method: 'get',
+    tags: ['admin permission'],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
+    request: {
+        params: z.object({
+            email_hash: z.string()
+        })
+    },
+    responses: {
+        200: {
+            description: "Return all permissions of user",
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        permissions: z.array(z.object({
+                            permission_id: z.number()
+                        }))
+                    }),
+                },
+            },
+        },
+        500: {
+            description: "Error interno",
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        message: z.string(),
+                    }),
+                },
+            },
+        }
+    },
+}), async (c) => {
+    try {
+        const { email_hash } = c.req.valid("param");
 
-//         try {
-//             await c.env.DB.prepare(`
-//                 INSERT INTO userpermission(email_hash, permission_name) VALUES (?, ?)
-//             `)
-//                 .bind(email_hash, permission_name)
-//                 .run();
+        const result = await c.env.DB.prepare(`
+            SELECT permission_id FROM userpermission WHERE email_hash = ?
+        `)
+            .bind(email_hash)
+            .all<{
+                permission_id: number
+            }>();
+
+        return c.json({
+            permissions: result.results
+        }, 200)
+    } catch (error) {
+        return c.json({ "message": "An error occurred while get the permission" }, 500);
+    }
+})
+
+app.openapi(
+    createRoute({
+        path: "/",
+        method: 'post',
+        tags: ['admin permission'],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            email_hash: z.string(),
+                            permission_id: z.number()
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            201: {
+                description: "Permission added",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            }
+        }
+    }),
+    async (c) => {
+        const { email_hash, permission_id } = c.req.valid("json");
+
+        try {
+            await c.env.DB.prepare(`
+                INSERT INTO userpermission(email_hash, permission_id) VALUES (?, ?)
+            `)
+                .bind(email_hash, permission_id)
+                .run();
+
+            return c.json({
+                "message": "ok"
+            }, 201);
+        } catch (error) {
+            return c.json({ "message": "The user already has this permission" }, 500);
+        }
+    }
+);
+
+app.openapi(
+    createRoute({
+        path: "/",
+        method: 'delete',
+        tags: ['admin permission'],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            email_hash: z.string(),
+                            permission_id: z.number()
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: "Permission deleted",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            }
+        }
+    }),
+    async (c) => {
+        const { email_hash, permission_id } = c.req.valid("json");
+
+        try {
+            await c.env.DB.prepare(`
+                DELETE FROM userpermission WHERE email_hash = ? AND permission_id = ?
+            `)
+                .bind(email_hash, permission_id)
+                .run();
+
+            return c.json({
+                "message": "Permission deleted"
+            }, 200);
+        } catch (error) {
+            return c.json({ "message": "An error occurred while deleting the permission" }, 500);
+        }
+    }
+);
 
 
-//             return c.json({
-//                 "message": "ok"
-//             }, 201);
-//         } catch (error) {
-//             return c.json({ "message": "The user already has this permission" }, 409);
-//         }
-//     }
-// );
-
-// app.delete(
-//     "/permission",
-//     zValidator("json", z.object({
-//         email_hash: z.string(),
-//         permission_name: z.string()
-//     })),
-//     zValidator("header", HeaderSchema),
-//     verifyTokenMiddleware,
-//     verifyTokenOnePermision(PERMISSIONS.SUDO),
-//     async (c) => {
-//         const { email_hash, permission_name } = c.req.valid("json");
-
-//         try {
-//             const result = await c.env.DB.prepare(`
-//                 DELETE FROM userpermission WHERE email_hash = ? AND permission_name = ?
-//             `)
-//                 .bind(email_hash, permission_name)
-//                 .run();
-
-//             if (result.meta.changes === 0) {
-//                 return c.json({ "message": "Permission not found" }, 404);
-//             }
-
-//             return c.json({
-//                 "message": "Permission deleted"
-//             }, 200);
-//         } catch (error) {
-//             return c.json({ "message": "An error occurred while deleting the permission" }, 500);
-//         }
-//     }
-// );
-
-
-// export default app
+export default app
