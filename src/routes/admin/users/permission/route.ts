@@ -2,9 +2,7 @@ import { z } from "zod";
 import createHono from "../../../../lib/honoBase";
 import { createRoute } from "@hono/zod-openapi";
 
-const app = createHono()
-
-app.openapi(createRoute({
+const app = createHono().openapi(createRoute({
     path: "/{email_hash}",
     method: 'get',
     tags: ['admin permission'],
@@ -60,9 +58,7 @@ app.openapi(createRoute({
     } catch (error) {
         return c.json({ "message": "An error occurred while get the permission" }, 500);
     }
-})
-
-app.openapi(
+}).openapi(
     createRoute({
         path: "/",
         method: 'post',
@@ -124,9 +120,7 @@ app.openapi(
             return c.json({ "message": "The user already has this permission" }, 500);
         }
     }
-);
-
-app.openapi(
+).openapi(
     createRoute({
         path: "/",
         method: 'delete',

@@ -3,9 +3,7 @@ import { z } from "zod";
 import { TokenPayload } from "../../../lib/middlewares/token";
 import { createRoute } from "@hono/zod-openapi";
 
-const app = createHono();
-
-app.openapi(
+const app = createHono().openapi(
     createRoute({
         method: 'post',
         path: "/",
@@ -122,9 +120,7 @@ app.openapi(
             );
         }
     }
-);
-
-app.openapi(
+).openapi(
     createRoute({
         method: 'put',
         path: "/",
@@ -243,10 +239,7 @@ app.openapi(
             );
         }
     }
-);
-
-
-app.openapi(
+).openapi(
     createRoute({
         method: 'delete',
         path: "/",

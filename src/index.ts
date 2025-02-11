@@ -24,34 +24,27 @@ app.openAPIRegistry.registerComponent("securitySchemes", "osuctoken", {
   in: "header",
   description: "Bearer token",
 })
+
 app.use("/*", cors())
-
 app.use("/auth/register", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.CREATE_USER))
-app.route('/auth', auth)
-
 app.use("/general/*", verifyTokenMiddleware)
-app.route("/general", general)
-
 app.use("/reviews/*", verifyTokenMiddleware)
-app.route("/reviews", reviews)
-
 app.use("/course/*", verifyTokenMiddleware)
-app.route("/course", course)
-
 app.use("/user/panel/*", verifyTokenMiddleware)
-app.route("/user/panel", userPanel)
-
 app.use("/user/reviews/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.CREATE_EDIT_OWN_REVIEW))
-app.route("/user/reviews", userReviews)
-
-
 app.use("/bots/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.UPDATE_QUOTA))
-app.route("/bots", bots)
 
 
 app.use("/admin/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.ADMIN))
-app.route("/admin/user/permission", adminUserPermission)
-app.route("/admin/user/manager", adminUserManager)
+const routes = app.route("/course", course)
+  .route('/auth', auth)
+  .route("/general", general)
+  .route("/reviews", reviews)
+  .route("/user/panel", userPanel)
+  .route("/user/reviews", userReviews)
+  .route("/bots", bots)
+  .route("/admin/user/permission", adminUserPermission)
+  .route("/admin/user/manager", adminUserManager)
 
 // app.route("/admin/reviews", adminReviews)
 
@@ -66,3 +59,5 @@ app.doc("/doc", {
 app.get('/', swaggerUI({ url: '/doc' }))
 
 export default app
+
+export type AppType = typeof routes

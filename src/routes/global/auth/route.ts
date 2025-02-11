@@ -8,9 +8,7 @@ import { UserAccountCreateSchema, UserAccountLoginSchema } from "../../users/typ
 import { createRoute, z } from "@hono/zod-openapi";
 import { PERMISSIONS } from "../../../lib/enums";
 
-const app = createHono()
-
-app.openapi(
+const app = createHono().openapi(
     createRoute({
         method: 'post',
         path: '/register',
@@ -130,14 +128,7 @@ app.openapi(
             );
         }
     }
-);
-
-// '/login',
-// zValidator('json', UserAccountLoginSchema, (result, c) => {
-//     if (!result.success)
-//         return c.json({ message: result.error.errors[0].message });
-// }),
-app.openapi(
+).openapi(
     createRoute({
         method: 'post',
         path: '/login',

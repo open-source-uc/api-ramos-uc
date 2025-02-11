@@ -2,9 +2,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 import createHono from "../../../../lib/honoBase";
 import { sha256 } from "../../../../lib/hash";
 
-const app = createHono()
-
-app.openapi(createRoute({
+const app = createHono().openapi(createRoute({
     path: "/list",
     method: 'get',
     tags: ['admin user manager'],
@@ -55,9 +53,7 @@ app.openapi(createRoute({
     } catch (error) {
         return c.json({ "message": "An error occurred while get the permissions" }, 500);
     }
-})
-
-app.openapi(createRoute({
+}).openapi(createRoute({
     path: "/",
     method: 'get',
     tags: ['admin user manager'],
@@ -132,10 +128,7 @@ app.openapi(createRoute({
         console.log(error)
         return c.json({ "message": "An error occurred while get the user" }, 500);
     }
-})
-
-
-app.openapi(createRoute({
+}).openapi(createRoute({
     path: "/{email}",
     method: 'get',
     tags: ['admin user manager'],
