@@ -16,7 +16,7 @@ const app = createHono().openapi(
                 content: {
                     'application/json': {
                         schema: z.object({
-                            sigle: z.string().toUpperCase(),
+                            sigle: z.string(),
                             name: z.string(),
                             credits: z.number().min(0),
                             school_id: z.number().min(1),
