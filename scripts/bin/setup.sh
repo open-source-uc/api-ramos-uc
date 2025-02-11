@@ -16,23 +16,23 @@ else
     exit 1
 fi
 
-npx wrangler d1 execute ramos-uc $FLAG --file=../sql/drop_tables.sql
+npx wrangler d1 execute ramos-uc $FLAG --file=../sql/drop_tables.sql -y
 echo "Tablas dropeadas"
 
-npx wrangler d1 execute ramos-uc $FLAG --file=../sql/create_tables.sql
+npx wrangler d1 execute ramos-uc $FLAG --file=../sql/create_tables.sql -y
 echo "Tablas creadas"
 
-npx wrangler d1 execute ramos-uc $FLAG --file=../sql/insert_defaults.sql
+npx wrangler d1 execute ramos-uc $FLAG --file=../sql/insert_defaults.sql -y
 echo "Datos default insertados"
 
-npx wrangler d1 execute ramos-uc $FLAG --file=../sql/triggers.sql
+npx wrangler d1 execute ramos-uc $FLAG --file=../sql/triggers.sql -y
 echo "Triggers creados"
 
-npx wrangler d1 execute ramos-uc $FLAG --file=../sql/index.sql
+npx wrangler d1 execute ramos-uc $FLAG --file=../sql/index.sql -y
 echo "Index creados"
 
 echo "Insertando cursos"
 for file in ../sql/2025-1/*.sql; do
     echo "Ejecutando $file..."
-    npx wrangler d1 execute ramos-uc $FLAG --file="$file"
+    npx wrangler d1 execute ramos-uc $FLAG --file="$file" -y
 done
