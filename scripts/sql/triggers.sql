@@ -129,3 +129,10 @@ BEGIN
     SET token_version = datetime('now')  -- Actualiza la versión del token a la fecha y hora actual
     WHERE email_hash = OLD.email_hash;  -- Se aplica solo al usuario que acaba de perder permisos
 END;
+
+CREATE TRIGGER before_insert_course
+BEFORE INSERT ON course
+FOR EACH ROW
+BEGIN
+    UPDATE course SET sigle = UPPER(NEW.sigle) WHERE rowid = NEW.rowid;
+END;
