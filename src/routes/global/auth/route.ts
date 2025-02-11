@@ -133,6 +133,11 @@ const app = createHono().openapi(
         method: 'post',
         path: '/login',
         tags: ['auth'],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
         request: {
             body: {
                 content: {

@@ -26,7 +26,7 @@ app.openAPIRegistry.registerComponent("securitySchemes", "osuctoken", {
 })
 
 app.use("/*", cors())
-// app.use("/auth/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.AUTH))
+app.use("/auth/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.AUTH))
 app.use("/general/*", verifyTokenMiddleware)
 app.use("/reviews/*", verifyTokenMiddleware)
 app.use("/course/*", verifyTokenMiddleware)
@@ -45,8 +45,6 @@ const routes = app.route("/course", course)
   .route("/bots", bots)
   .route("/admin/user/permission", adminUserPermission)
   .route("/admin/user/manager", adminUserManager)
-
-// app.route("/admin/reviews", adminReviews)
 
 app.doc("/doc", {
   openapi: "3.0.0",
