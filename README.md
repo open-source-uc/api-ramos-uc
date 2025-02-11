@@ -44,6 +44,5 @@ La API de "ramos uc" es la API utilizada para la página **Ramos UC**, una plata
 
 ¡Ya estás listo para desarrollar!
 
----
 
-Si deseas añadir algo más o modificar el flujo, no dudes en decírmelo.
+Si deseas aportar alguna idea, sugerencia o realizar modificaciones al flujo, no dudes en compartirlo. Cualquier aporte será bienvenido para mejorar el proyecto uwu.
