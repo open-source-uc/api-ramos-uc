@@ -46,3 +46,11 @@ La API de "ramos uc" es la API utilizada para la página **Ramos UC**, una plata
 
 
 Si deseas aportar alguna idea, sugerencia o realizar modificaciones al flujo, no dudes en compartirlo. Cualquier aporte será bienvenido para mejorar el proyecto uwu.
+
+## Seguridad
+
+Los correos electrónicos ingresados **no se almacenan en texto plano**, sino que se guardan como un hash usando el algoritmo Hash256. Esto asegura que, en caso de una filtración de datos, los correos no sean legibles, evitando el uso indebido de los mismos, para spam masivo en la universidad.
+
+Las contraseñas son encriptadas utilizando un **salt de 10 pasos**, lo que agrega una capa adicional de seguridad. Este proceso hace que las contraseñas sean **MUY CERCA DE IMPOSIBLE (~Edad Del Universo)** de descifrar, incluso si un atacante tiene acceso a la base de datos.
+
+Los **tokens de autenticación** emplean un sistema de versiones. Esto significa que, al cambiar la contraseña de un usuario, el token anterior se invalida, garantizando que nadie pueda seguir utilizando el acceso con credenciales obsoletas, incluso si el token ha sido comprometido previamente.

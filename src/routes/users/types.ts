@@ -42,12 +42,15 @@ export const UserAccountCreateSchema = z.object({
     email: z.string().email().refine((val) => val.endsWith('.uc.cl') || val.endsWith('@uc.cl'), {
         message: 'El correo electrónico debe pertenecer al dominio uc.cl',
     }),
-    password: z.string().min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+    password: z.string().min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' }).max(30, { message: 'La contraseña no debe exceder los 100 caracteres.' })
         .refine((val) => /[A-Z]/.test(val), {
             message: 'La contraseña debe contener al menos una letra mayúscula.',
         })
         .refine((val) => /[0-9]/.test(val), {
             message: 'La contraseña debe contener al menos un número.',
+        })
+        .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
+            message: 'La contraseña debe contener al menos un símbolo especial.',
         }),
     nickname: z.string().min(4).max(100, { message: 'El apodo no debe exceder los 100 caracteres.' }),
     admission_year: z.number().int(),
