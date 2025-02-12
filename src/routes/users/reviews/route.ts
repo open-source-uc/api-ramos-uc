@@ -111,7 +111,7 @@ const app = createHono().openapi(
                 message: "Create review"
             }, 201)
 
-        } catch (error) {
+        } catch {
             return c.json(
                 {
                     message: "Server Error",
@@ -230,7 +230,7 @@ const app = createHono().openapi(
             }
 
             return c.json({ message: "Reseña actualizada correctamente" }, 200);
-        } catch (error) {
+        } catch {
             return c.json(
                 {
                     message: "Server Error",
@@ -311,7 +311,7 @@ const app = createHono().openapi(
             }
 
             return c.json({ message: "Reseña eliminada correctamente" }, 200);
-        } catch (error) {
+        } catch {
             return c.json(
                 {
                     message: "Server Error",

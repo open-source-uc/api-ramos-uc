@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import createHono from "../../../lib/honoBase";
 import { z } from "zod";
 import { createRoute } from "@hono/zod-openapi";
@@ -104,7 +103,7 @@ const app = createHono()
             }
 
             return c.json({ reviews: result.results, meta: result.meta }, 200);
-        } catch (error) {
+        } catch {
             return c.json({ message: "Internal Server Error" }, 500);
         }
     })
@@ -220,8 +219,7 @@ const app = createHono()
                 }
 
                 return c.json({ reviews: result.results, meta: result.meta }, 200);
-            } catch (error) {
-                console.error(error);
+            } catch {
                 return c.json({ message: "Internal Server Error" }, 500);
             }
         }).openapi(createRoute({
@@ -326,7 +324,7 @@ const app = createHono()
                 }
 
                 return c.json({ reviews: result }, 200);
-            } catch (error) {
+            } catch {
                 return c.json({ message: "Internal Server Error" }, 500);
             }
         }).openapi(createRoute({
@@ -434,8 +432,7 @@ const app = createHono()
                 }
 
                 return c.json({ reviews: result.results, meta: result.meta }, 200);
-            } catch (error) {
-                console.error(error);
+            } catch {
                 return c.json({ message: "Internal Server Error" }, 500);
             }
         })

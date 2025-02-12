@@ -1,7 +1,6 @@
 import { createRoute } from "@hono/zod-openapi";
 import createHono from "../../../lib/honoBase";
-import { zValidator } from '@hono/zod-validator'
-import { z } from "zod"
+import { z } from "@hono/zod-openapi";
 
 const app = createHono()
     .openapi(
@@ -298,7 +297,7 @@ const app = createHono()
                 }
 
                 return c.json({ course: result }, 200);
-            } catch (error) {
+            } catch {
                 return c.json({ message: "Server Error" }, 500);
             }
         }
@@ -398,7 +397,7 @@ const app = createHono()
                 }
 
                 return c.json({ course: result }, 200);
-            } catch (error) {
+            } catch {
                 return c.json({ message: "Server Error" }, 500);
             }
         }

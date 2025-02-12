@@ -55,7 +55,7 @@ const app = createHono().openapi(createRoute({
         return c.json({
             permissions: result.results
         }, 200)
-    } catch (error) {
+    } catch {
         return c.json({ "message": "An error occurred while get the permission" }, 500);
     }
 }).openapi(
@@ -116,7 +116,7 @@ const app = createHono().openapi(createRoute({
             return c.json({
                 "message": "ok"
             }, 201);
-        } catch (error) {
+        } catch {
             return c.json({ "message": "The user already has this permission" }, 500);
         }
     }
@@ -178,7 +178,7 @@ const app = createHono().openapi(createRoute({
             return c.json({
                 "message": "Permission deleted"
             }, 200);
-        } catch (error) {
+        } catch {
             return c.json({ "message": "An error occurred while deleting the permission" }, 500);
         }
     }

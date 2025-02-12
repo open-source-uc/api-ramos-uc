@@ -6,6 +6,17 @@ export type Bindings = {
 };
 
 export default function createHono() {
-    const app = new OpenAPIHono<{ Bindings: Bindings }>()
+    const app = new OpenAPIHono<{ Bindings: Bindings }>({
+        defaultHook: (r, c) => {
+            if (!r.success) {
+                return c.json(
+                    {
+                        message: r.error.errors?.[0].message ?? "Error en los datos enviados",
+                    },
+                    400
+                )
+            }
+        }
+    })
     return app
 }

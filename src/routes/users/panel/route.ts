@@ -1,11 +1,8 @@
 import createHono from "../../../lib/honoBase";
-import { zValidator } from "@hono/zod-validator";
 import bcrypt from "bcryptjs";
 import { env } from "hono/adapter";
 import { sign } from "hono/jwt";
-import { HeaderSchema } from "../../../lib/header";
-import { UserAccountUpdateSchema, UserPasswordUpdateSchema } from "../types";
-import { TokenPayload, verifyTokenMiddleware } from "../../../lib/middlewares/token";
+import { TokenPayload } from "../../../lib/middlewares/token";
 import { createRoute, z } from "@hono/zod-openapi";
 
 const app = createHono()
@@ -74,7 +71,7 @@ const app = createHono()
                     }>();
 
                 return c.json({ user: result }, 200);
-            } catch (error) {
+            } catch {
                 return c.json({ message: "Server Error" }, 500);
             }
         }
@@ -164,7 +161,7 @@ const app = createHono()
                     },
                     200
                 );
-            } catch (error) {
+            } catch {
                 return c.json({ message: "Server Error" }, 500);
             }
         }

@@ -5,7 +5,7 @@ import tseslint from "typescript-eslint";
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   { files: ["**/*.{js,mjs,cjs,ts}"] },
-  { ignores: [".wrangler/"] }, // Ignorar la carpeta .wrangler
+  { ignores: [".wrangler/", "test/**", "dist/**"] }, // Ignorar la carpeta .wrangler
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,

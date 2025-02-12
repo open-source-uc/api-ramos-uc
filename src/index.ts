@@ -36,7 +36,7 @@ app.use("/bots/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.
 
 
 app.use("/admin/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.ADMIN))
-const routes = app.route("/course", course)
+export const routes = app.route("/course", course)
   .route('/auth', auth)
   .route("/general", general)
   .route("/reviews", reviews)

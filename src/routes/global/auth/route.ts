@@ -1,5 +1,5 @@
 import createHono from "../../../lib/honoBase";
-import { zValidator } from '@hono/zod-validator'
+import { ErrorSchema } from "../../../lib/schemas/general";
 import bcrypt from "bcryptjs"
 import { env } from 'hono/adapter'
 import { sign } from "hono/jwt";
@@ -59,6 +59,14 @@ const app = createHono().openapi(
                     },
                 },
             },
+            400: {
+                description: "Error en los datos enviados",
+                content: {
+                    'application/json': {
+                        schema: ErrorSchema
+                    },
+                }
+            }
         },
     }),
     async (c) => {
@@ -179,6 +187,14 @@ const app = createHono().openapi(
                     },
                 },
             },
+            400: {
+                description: "Error en los datos enviados",
+                content: {
+                    'application/json': {
+                        schema: ErrorSchema
+                    },
+                }
+            }
         },
     }),
     async (c) => {

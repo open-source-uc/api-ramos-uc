@@ -50,7 +50,7 @@ const app = createHono().openapi(createRoute({
             permissions: result.results,
             meta: result.meta
         }, 200)
-    } catch (error) {
+    } catch {
         return c.json({ "message": "An error occurred while get the permissions" }, 500);
     }
 }).openapi(createRoute({
