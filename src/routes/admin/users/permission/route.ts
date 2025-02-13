@@ -182,7 +182,59 @@ const app = createHono().openapi(createRoute({
             return c.json({ "message": "An error occurred while deleting the permission" }, 500);
         }
     }
-);
+).openapi(createRoute({
+    path: "/list",
+    method: 'get',
+    tags: ['admin permission'],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
+    description: "Get all permissions of API",
+    responses: {
+        200: {
+            description: "Return all permissions",
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        permissions: z.array(z.object({
+                            id: z.number(),
+                            permission_name: z.string(),
+                        }))
+                    }),
+                },
+            },
+        },
+        500: {
+            description: "Error interno",
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        message: z.string(),
+                    }),
+                },
+            },
+        }
+    }
+}), async (c) => {
+    try {
+        const result = await c.env.DB.prepare(`
+            SELECT * FROM permission
+        `)
+            .all<{
+                id: number,
+                permission_name: string
+            }>();
+
+        return c.json({
+            permissions: result.results,
+            meta: result.meta
+        }, 200)
+    } catch {
+        return c.json({ "message": "An error occurred while get the permissions" }, 500);
+    }
+})
 
 
 export default app

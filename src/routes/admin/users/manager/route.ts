@@ -13,57 +13,6 @@ const app = createHono().openapi(createRoute({
     ],
     responses: {
         200: {
-            description: "Return all permissions",
-            content: {
-                'application/json': {
-                    schema: z.object({
-                        permissions: z.array(z.object({
-                            id: z.number(),
-                            permission_name: z.string(),
-                        }))
-                    }),
-                },
-            },
-        },
-        500: {
-            description: "Error interno",
-            content: {
-                'application/json': {
-                    schema: z.object({
-                        message: z.string(),
-                    }),
-                },
-            },
-        }
-    }
-}), async (c) => {
-    try {
-        const result = await c.env.DB.prepare(`
-            SELECT * FROM permission
-        `)
-            .all<{
-                id: number,
-                permission_name: string
-            }>();
-
-        return c.json({
-            permissions: result.results,
-            meta: result.meta
-        }, 200)
-    } catch {
-        return c.json({ "message": "An error occurred while get the permissions" }, 500);
-    }
-}).openapi(createRoute({
-    path: "/",
-    method: 'get',
-    tags: ['admin user manager'],
-    security: [
-        {
-            osuctoken: []
-        }
-    ],
-    responses: {
-        200: {
             description: "Return all users",
             content: {
                 'application/json': {

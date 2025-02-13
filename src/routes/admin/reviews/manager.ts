@@ -1,123 +1,238 @@
-// import { zValidator } from "@hono/zod-validator";
-// import createHono from "../../../lib/honoBase";
-// import { z } from "zod";
-// import { TokenPayload, verifyTokenMiddleware } from "../../../lib/middlewares/token";
-// import { PERMISSIONS, verifyTokenOnePermision } from "../../../lib/middlewares/perms";
-// import { HeaderSchema } from "../../../lib/header";
+import { createRoute, z } from "@hono/zod-openapi";
+import { ErrorSchema } from "../../../lib/schemas/general";
+import createHono from "../../../lib/honoBase";
 
-// const app = createHono()
+const app = createHono().openapi(
+    createRoute({
+        path: "/{review_id}",
+        method: "delete",
+        tags: ["admin review manager"],
+        security: [
+            {
+                osuctoken: []
+            }
+        ],
+        request: {
+            params: z.object({
+                review_id: z.number()
+            })
+        },
+        responses: {
+            200: {
+                description: "Review deleted",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            404: {
+                description: "Review not found",
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            400: {
+                description: "Error en los datos enviados",
+                content: {
+                    'application/json': {
+                        schema: ErrorSchema
+                    },
+                }
+            },
+            500: {
+                description: "Error interno",
+                content: {
+                    "application/json": {
+                        schema: ErrorSchema
+                    },
+                },
+            }
+        }
+    }),
+    async (c) => {
+        try {
+            const { review_id } = c.req.valid("param");
+            const result = await c.env.DB.prepare(`
+                DELETE FROM review WHERE id = ?    
+            `).bind(review_id).run();
 
-// const sudoMiddleware = verifyTokenOnePermision(PERMISSIONS.SUDO)
+            if (result.meta.changes === 0) {
+                return c.json({ message: "Review not found" }, 404);
+            }
 
-// app.put(
-//     "/",
-//     zValidator(
-//         "json",
-//         z.object({
-//             course_sigle: z.string(),
-//             email_hash: z.string(),
-//             year: z.number().min(2013),
-//             section_number: z.number().min(1).max(100),
-//             liked: z.boolean(),
-//             comment: z.string().min(10).max(500),
-//             estimated_credits: z.number().min(1),
-//             status: z.enum(["visible", "hidden"])
-//         })
-//     ),
-//     zValidator(
-//         "header",
-//         HeaderSchema
-//     ),
-//     verifyTokenMiddleware,
-//     sudoMiddleware,
-//     async (c) => {
-//         try {
-//             const { course_sigle, email_hash, year, section_number, liked, comment, estimated_credits, status } =
-//                 c.req.valid("json");
+            return c.json({ message: "Review deleted" }, 200);
 
-//             const result = await c.env.DB.prepare(
-//                 `
-//               UPDATE review
-//               SET
-//                   year = ?,
-//                   section_number = ?,
-//                   liked = ?,
-//                   comment = ?,
-//                   estimated_credits = ?,
-//                   status = ?
-//               WHERE email_hash = ? AND course_sigle = ?
-//               `
-//             )
-//                 .bind(
-//                     year,
-//                     section_number,
-//                     liked,
-//                     comment,
-//                     estimated_credits,
-//                     status,
-//                     email_hash,
-//                     course_sigle
-//                 )
-//                 .run();
+        } catch {
+            return c.json({ message: "An error occurred while deleting the review" }, 500);
+        }
+    }
+).openapi({
+    method: "put",
+    path: "/{review_id}",
+    tags: ["admin review manager"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
+    request: {
+        params: z.object({
+            review_id: z.number()
+        }),
+        body: {
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        year: z.number(),
+                        section_number: z.number().min(1).max(100),
+                        liked: z.boolean(),
+                        comment: z.string().min(10).max(500),
+                        estimated_credits: z.number().min(1),
+                        status: z.enum(["visible", "hidden"])
+                    })
+                }
+            }
+        },
+    },
+    responses: {
+        200: {
+            description: "Review updated",
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        message: z.string()
+                    }),
+                },
+            },
+        },
+        404: {
+            description: "Review not found",
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        message: z.string(),
+                    }),
+                },
+            },
+        },
+        400: {
+            description: "Error en los datos enviados",
+            content: {
+                'application/json': {
+                    schema: ErrorSchema
+                },
+            }
+        },
+        500: {
+            description: "Error interno",
+            content: {
+                "application/json": {
+                    schema: ErrorSchema
+                },
+            },
+        }
+    }
+}, async (c) => {
+    try {
+        const { review_id } = c.req.valid("param");
+        const { year, section_number, liked, comment, estimated_credits, status } = c.req.valid("json");
 
-//             if (result.meta.changes === 0) {
-//                 return c.json({ message: "Reseña no encontrada" }, 404);
-//             }
+        const result = await c.env.DB.prepare(`
+            UPDATE review SET 
+                year = ?,
+                section_number = ?,
+                liked = ?,
+                comment = ?,
+                estimated_credits = ?,
+                status = ?
+            WHERE id = ?
+        `).bind(year, section_number, liked, comment, estimated_credits, status, review_id).run();
 
-//             return c.json({ message: "Reseña actualizada correctamente" }, 200);
-//         } catch (error) {
-//             return c.json(
-//                 {
-//                     message: error?.toString(),
-//                     error: true,
-//                 },
-//                 500
-//             );
-//         }
-//     }
-// );
+        if (result.meta.changes === 0) {
+            return c.json({ message: "Review not found" }, 404);
+        }
 
-// app.delete(
-//     "/",
-//     zValidator(
-//         "json",
-//         z.object({
-//             course_sigle: z.string(),
-//             email_hash: z.string(),
-//         })
-//     ),
-//     zValidator(
-//         "header",
-//         HeaderSchema
-//     ),
-//     verifyTokenMiddleware,
-//     sudoMiddleware,
-//     async (c) => {
-//         try {
-//             const { course_sigle, email_hash } = c.req.valid("json");
+        return c.json({ message: "Review updated" }, 200)
+    } catch {
+        return c.json({ message: "An error occurred while updating the review" }, 500);
+    }
+}).openapi({
+    method: "get",
+    path: "/",
+    tags: ["admin review manager"],
+    security: [
+        {
+            osuctoken: []
+        }
+    ],
+    request: {
+        query: z.object({
+            first_date: z.date().optional(),
+        })
+    },
+    responses: {
+        200: {
+            description: "List of reviews",
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        reviews: z.array(z.object({
+                            id: z.number(),
+                            course_id: z.number(),
+                            email_hash: z.string(),
+                            year: z.number(),
+                            section_number: z.number(),
+                            liked: z.boolean(),
+                            comment: z.string(),
+                            estimated_credits: z.number(),
+                            status: z.enum(["visible", "hidden"])
+                        }))
+                    }),
+                },
+            },
+        },
+        500: {
+            description: "Internal error",
+            content: {
+                "application/json": {
+                    schema: ErrorSchema
+                },
+            },
+        }
+    }
+}, async (c) => {
+    try {
+        const { first_date } = c.req.valid("query");
+        const reviews = await c.env.DB.prepare(`
+            SELECT 
+            id, course_id, email_hash, year, section_number, liked, comment, estimated_credits, status, date
+            FROM review
+            WHERE date < ?
+            ORDER BY date DESC
+            LIMIT 50
+        `).bind(first_date ?? new Date().toISOString().split('T')[0]).all<{
+            id: number,
+            course_id: number,
+            email_hash: string
+            year: number,
+            section_number: number,
+            liked: boolean,
+            comment: string,
+            estimated_credits: number,
+            status: "visible" | "hidden"
+        }>();
 
-//             const result = await c.env.DB.prepare(
-//                 `
-//                 DELETE FROM review
-//                 WHERE email_hash = ? AND course_sigle = ?
-//                 `
-//             )
-//                 .bind(email_hash, course_sigle)
-//                 .run();
+        return c.json({ reviews: reviews.results, meta: reviews.meta }, 200);
+    } catch {
+        return c.json({ message: "An error occurred while fetching the reviews" }, 500);
+    }
+})
 
-//             if (result.meta.changes === 0) {
-//                 return c.json({ message: "Reseña no encontrada" }, 404);
-//             }
-
-//             return c.json({ message: "Reseña eliminada correctamente" }, 200);
-//         } catch (error) {
-//             return c.json(
-//                 {
-//                     message: error?.toString(),
-//                     error: true,
-//                 },
-//                 500
-//             );
-//         }
-//     }
-// );
+export default app
