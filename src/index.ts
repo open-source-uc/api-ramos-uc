@@ -33,9 +33,9 @@ app.use("/course/*", verifyTokenMiddleware)
 app.use("/user/panel/*", verifyTokenMiddleware)
 app.use("/user/reviews/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.CREATE_EDIT_OWN_REVIEW))
 app.use("/bots/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.UPDATE_QUOTA))
-
-
 app.use("/admin/*", verifyTokenMiddleware, verifyPermisionMiddleware(PERMISSIONS.ADMIN))
+
+
 export const routes = app.route("/course", course)
   .route('/auth', auth)
   .route("/general", general)
