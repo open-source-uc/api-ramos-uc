@@ -2,6 +2,8 @@ import createHono from "../../../lib/honoBase";
 import { z } from "zod";
 import { TokenPayload } from "../../../lib/middlewares/token";
 import { createRoute } from "@hono/zod-openapi";
+import { google } from '@ai-sdk/google';
+import { generateText } from 'ai';
 
 const app = createHono().openapi(
     createRoute({
@@ -71,7 +73,32 @@ const app = createHono().openapi(
                 return c.json({
                     message: "El año de admision debe ser mayor o igual a " + (currentYear - 12)
                 }, 400)
+        
+        const contextoIA: string = `
+        Eres una IA moderadora de comentarios en una página universitaria. Tu función es evaluar si un comentario es apropiado o no basándote en dos criterios principales:
+        1. El comentario NO debe contener malas palabras.
+        2. El comentario NO debe expresar odio injustificado o ataques personales.
+        
+        Tu respuesta debe ser estrictamente una de las siguientes opciones en minúsculas:
+        - "true": si el comentario es apropiado y cumple con las normas.
+        - "false": si el comentario es inapropiado, ya sea por malas palabras o por expresar odio injustificado.
+        
+        No debes dar explicaciones, justificaciones ni respuestas adicionales. Tu rol es ser neutral, imparcial y objetivo en todo momento.
+        `;
 
+        try {
+            const { answer } = await generateText({
+                model: google('gemini-1.5-flash'),
+                prompt: (contextoIA + comment)
+            });
+            if (answer.toLowerCase() === 'false') {
+                return c.json({
+                    message: "El comentario fue marcado como inapropiado"
+                }, 400)
+            }
+        } catch (error) {
+            console.error('AI moderation failed:', error);
+        }
 
             const payload: TokenPayload = c.get("jwtPayload")
             await c.env.DB.prepare(`
